@@ -1,3 +1,3 @@
 # OpenglStuff
 
-![Screenshot1](screenshots/screenshot1.jpg)
+![Screenshot1](screenshots/screenshot1.png)
