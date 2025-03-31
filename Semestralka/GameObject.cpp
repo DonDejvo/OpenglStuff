@@ -9,16 +9,6 @@ GameObject::GameObject(Mesh* mesh, Camera* camera) :
 	yaw = 0;
 }
 
-void GameObject::draw(ShaderTechnique& technique)
-{
-	glm::mat4 PVMMatrix = mCamera->getPVMatrix() * mMatrix;
-
-	technique.supplyPVMMatrix(PVMMatrix);
-	technique.supplyModelMatrix(mMatrix);
-
-	mMesh->draw();
-}
-
 void GameObject::computeModelMatrix()
 {
 	mMatrix = glm::mat4(1.0f);

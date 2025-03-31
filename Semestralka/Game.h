@@ -5,6 +5,9 @@
 #include <map>
 #include "Camera.h"
 #include "ShaderTechnique.h"
+#include "Lights.h"
+
+class ShaderTechnique;
 
 struct GameConfig {
 	const char* title;
@@ -16,9 +19,11 @@ class Game {
 private:
 	GameConfig mConfig;
 	std::map<std::string, Shader*> mShaders;
-	ShaderTechnique* technique;
 	std::map<std::string, Camera*> mCameras;
 	std::vector<GameObject*> mGameObjects;
+	DirectionalLight mDirLight;
+	std::vector<PointLight> mPointLights;
+	ShaderTechnique* mTechnique;
 public:
 	Game(const GameConfig& config);
 	void init();
@@ -29,5 +34,17 @@ public:
 
 	inline const GameConfig& getConfig() const {
 		return mConfig;
+	}
+
+	inline const DirectionalLight& getDirectionalLight() const {
+		return mDirLight;
+	}
+
+	inline const std::vector<PointLight>& getPointLights() const {
+		return mPointLights;
+	}
+
+	inline const Camera& getCamera(const std::string& name) const {
+		return *mCameras.at(name);
 	}
 };

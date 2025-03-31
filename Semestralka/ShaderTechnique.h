@@ -1,17 +1,21 @@
 #pragma once
 
 #include "Shader.h"
+#include "GameObject.h"
+#include "Game.h"
 
-class ShaderTechnique {
+class Game;
+
+class ShaderTechnique : public DrawCallbacks {
 protected:
 	GLuint PVMLocation;
 	GLuint modelLocation;
 	Shader* mShader;
 
-	virtual void init();
 public:
 	ShaderTechnique(Shader* shader);
 	void use() const;
-	void supplyPVMMatrix(const glm::mat4& PVMMatrix);
-	void supplyModelMatrix(const glm::mat4& modelMatrix);
+	virtual void init() = 0;
+	virtual void prepare(const Game& game) = 0;
+	virtual void processGameObject(const GameObject& go) = 0;
 };

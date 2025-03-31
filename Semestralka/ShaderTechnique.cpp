@@ -16,14 +16,3 @@ void ShaderTechnique::use() const
 	mShader->use();
 }
 
-void ShaderTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix)
-{
-	glUniformMatrix4fv(PVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
-}
-
-void ShaderTechnique::supplyModelMatrix(const glm::mat4& modelMatrix)
-{
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-}
-
-

@@ -4,6 +4,7 @@
 #include <vector>
 #include "Texture.h"
 #include "Material.h"
+#include "DrawCallbacks.h"
 
 constexpr size_t NUM_BUFFERS = 5;
 constexpr unsigned int MESH_IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs;
@@ -43,7 +44,7 @@ protected:
 public:
 	void loadFromFile(const std::string& path);
 	void init();
-	void draw() const;
+	void draw(DrawCallbacks* drawCallbacks) const;
 };
 
 class Quad : public Mesh {

@@ -3,7 +3,6 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Shader.h"
-#include "ShaderTechnique.h"
 
 class GameObject {
 private:
@@ -16,7 +15,18 @@ public:
 	float pitch, yaw;
 
 	GameObject(Mesh* mesh, Camera* camera);
-	void draw(ShaderTechnique& technique);
 	void computeModelMatrix();
 	virtual void update(float dt);
+
+	inline const Mesh& getMesh() const {
+		return *mMesh;
+	}
+
+	inline const Camera& getCamera() const {
+		return *mCamera;
+	}
+
+	inline const glm::mat4& getMatrix() const {
+		return mMatrix;
+	}
 };

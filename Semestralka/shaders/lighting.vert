@@ -7,14 +7,14 @@ layout(location=2) in vec3 a_Normal;
 uniform mat4 u_PVM;
 uniform mat4 u_Model;
 
-out vec2 texCoord;
-out vec3 worldNormal;
-out vec3 worldPosition;
+out vec2 v_TexCoord;
+out vec3 v_Normal;
+out vec3 v_WorldPosition;
 
 void main() {
-    texCoord = a_TexCoord;
-    worldNormal = mat3(u_Model) * a_Normal;
-    worldPosition = (u_Model * vec4(a_Position, 1.0)).xyz;
+    v_TexCoord = a_TexCoord;
+    v_Normal = mat3(u_Model) * a_Normal;
+    v_WorldPosition = (u_Model * vec4(a_Position, 1.0)).xyz;
 
     gl_Position = u_PVM * vec4(a_Position, 1.0);
 }

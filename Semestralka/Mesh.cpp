@@ -62,12 +62,21 @@ void Mesh::initMaterial(aiMaterial* material, unsigned int index, const std::str
 		aiString path;
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
 			std::string fileName(path.C_Str());
-			Texture* diffuse = AssetManager::getTexture(directory + "/" + fileName);
-			mMaterials[index].diffuseTexture = diffuse;
+			Texture* tex = AssetManager::getTexture(directory + "/" + fileName);
+			mMaterials[index].diffuseTexture = tex;
 		}
 	}
 
-	std::cout << "Specular: " << material->GetTextureCount(aiTextureType_SPECULAR) << "\n";
+	// Load specular textures
+	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+		aiString path;
+		if (material->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
+			std::string fileName(path.C_Str());
+			std::cout << "Specular tex name: " << fileName << "\n";
+			Texture* tex = AssetManager::getTexture(directory + "/" + fileName);
+			mMaterials[index].specularTexture = tex;
+		}
+	}
 
 	// Load colors
 	
@@ -127,14 +136,27 @@ void Mesh::init()
 	glBindVertexArray(0);
 }
 
-void Mesh::draw() const
+void Mesh::draw(DrawCallbacks* drawCallbacks) const
 {
 	glBindVertexArray(mVAO);
 
 	for (unsigned int i = 0; i < mDrawCalls.size(); ++i) {
 		const Material& material = mMaterials[mDrawCalls[i].materialIndex];
-		if (material.diffuseTexture) {
-			material.diffuseTexture->bind(GL_TEXTURE0);
+
+		if (drawCallbacks) {
+
+			if (material.diffuseTexture) {
+				material.diffuseTexture->bind(GL_TEXTURE0);
+				drawCallbacks->supplyMaterial(material);
+			}
+
+			if (material.specularTexture) {
+				material.specularTexture->bind(GL_TEXTURE1);
+				drawCallbacks->enableSpecularTexture(true);
+			}
+			else {
+				drawCallbacks->enableSpecularTexture(false);
+			}
 		}
 
 		glDrawElementsBaseVertex(GL_TRIANGLES, mDrawCalls[i].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * mDrawCalls[i].baseIndex), mDrawCalls[i].baseVertex);
