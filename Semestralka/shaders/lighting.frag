@@ -66,10 +66,10 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal) {
     if(diffuseFactor > 0.0) {
         diffuseColor = vec4(light.Color, 1.0) * light.DiffuseIntensity * vec4(u_Material.DiffuseColor, 1.0) * diffuseFactor;
 
-        vec3 toCamera = normalize(u_CameraPosition - v_WorldPosition);
+        vec3 pixelToCamera = normalize(u_CameraPosition - v_WorldPosition);
         vec3 lightReflect = normalize(reflect(lightDirection, normal));
 
-        float specularFactor = dot(toCamera, lightReflect);
+        float specularFactor = dot(pixelToCamera, lightReflect);
 
         if(specularFactor > 0.0) {
             float specularExponent = 128.0;
@@ -102,7 +102,14 @@ vec4 CalcPointLight(PointLight light, vec3 normal) {
 }
 
 vec4 CalcSpotLight(SpotLight light, vec3 normal) {
-    return vec4(0.0);
+    vec3 lightToPixel = normalize(v_WorldPosition - light.Base.Position);
+    float spotFactor = dot(lightToPixel, light.Direction);
+
+    if(spotFactor > light.CutOff) { // angle < cutoffAngle -> cos(angle) > cos(cutoffAngle)
+        float lightIntensity = 1 - (1 - spotFactor) / (1 - light.CutOff); // 1 - angle / cutoffAngle -> 1 - (1 - cos(angle)) / (1 - cos(cutoffAngle))
+        return CalcPointLight(light.Base, normal) * lightIntensity;
+    }
+    return vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec4 CalcPhongLighting() {

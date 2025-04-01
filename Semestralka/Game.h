@@ -23,6 +23,7 @@ private:
 	std::vector<GameObject*> mGameObjects;
 	DirectionalLight mDirLight;
 	std::vector<PointLight> mPointLights;
+	std::vector<SpotLight> mSpotLights;
 	ShaderTechnique* mTechnique;
 public:
 	Game(const GameConfig& config);
@@ -42,6 +43,10 @@ public:
 
 	inline const std::vector<PointLight>& getPointLights() const {
 		return mPointLights;
+	}
+
+	inline const std::vector<SpotLight>& getSpotLights() const {
+		return mSpotLights;
 	}
 
 	inline const Camera& getCamera(const std::string& name) const {

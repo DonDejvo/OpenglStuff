@@ -27,12 +27,16 @@ public:
 	glm::vec3 worldUp;
 	glm::vec3 right;
 	glm::vec3 up;
+	float Near;
+	float Far;
 
 	Camera(const Viewport& viewport): viewport(viewport) {
 		position = glm::vec3(0.0f, 0.0f, 5.0f);
 		zoom = 1.0f;
 		direction = glm::vec3(0.0f, 0.0f, -1.0f);
 		worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+		Near = 0.1f;
+		Far = 100.0f;
 	}
 
 	virtual void updateProjection() = 0;
@@ -89,14 +93,14 @@ public:
 class PerspectiveCamera : public Camera {
 private:
 	float mFov;
-	float mNear;
-	float mFar;
 public:
 
-	PerspectiveCamera(const Viewport& viewport, float pFov, float pNear, float pFar) : Camera(viewport), mFov(pFov), mNear(pNear), mFar(pFar) {
+	PerspectiveCamera(const Viewport& viewport, float pFov, float pNear, float pFar) : Camera(viewport), mFov(pFov) {
+		Near = pNear;
+		Far = pFar;
 	}
 
 	void updateProjection() override {
-		mProjMatrix = glm::perspective(mFov, (float)viewport.width / viewport.height, mNear, mFar);
+		mProjMatrix = glm::perspective(mFov, (float)viewport.width / viewport.height, Near, Far);
 	}
 };

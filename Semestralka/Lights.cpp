@@ -16,3 +16,9 @@ PointLight::PointLight()
 {
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
 }
+
+SpotLight::SpotLight()
+{
+	direction = glm::vec3(1.0f, 0.0f, 0.0f);
+	cutOff = 0.0f;
+}

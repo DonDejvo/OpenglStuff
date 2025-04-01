@@ -34,9 +34,9 @@ void Game::init()
     go->scale = glm::vec3(1.0f);
     mGameObjects.push_back(go);
 
-    mDirLight.color = glm::vec3(0.0f, 0.0f, 1.0f);
-    mDirLight.ambientIntensity = 0.1f;
-    mDirLight.diffuseIntensity = 0.9f;
+    mDirLight.color = glm::vec3(1.0f, 1.0f, 1.0f);
+    mDirLight.ambientIntensity = 0.0f;
+    mDirLight.diffuseIntensity = 0.0f;
     mDirLight.worldDirection = glm::vec3(0.0f, 0.0f, -1.0f);
 
     PointLight pointLight1;
@@ -44,14 +44,23 @@ void Game::init()
     pointLight1.ambientIntensity = 0.1f;
     pointLight1.diffuseIntensity = 0.9f;
     pointLight1.position = glm::vec3(-15.0f, 15.0f, 10.0f);
-    mPointLights.push_back(pointLight1);
+    //mPointLights.push_back(pointLight1);
 
     PointLight pointLight2;
     pointLight1.color = glm::vec3(0.0f, 1.0f, 0.0f);
     pointLight1.ambientIntensity = 0.1f;
     pointLight1.diffuseIntensity = 0.9f;
     pointLight1.position = glm::vec3(15.0f, 15.0f, 10.0f);
-    mPointLights.push_back(pointLight1);
+    //mPointLights.push_back(pointLight1);
+
+    SpotLight spotLight1;
+    spotLight1.color = glm::vec3(0.0f, 1.0f, 1.0f);
+    spotLight1.ambientIntensity = 0.1f;
+    spotLight1.diffuseIntensity = 0.9f;
+    spotLight1.position = glm::vec3(0.0f, 0.0f, 10.0f);
+    spotLight1.direction = glm::vec3(0.0f, 0.0f, -1.0f);
+    spotLight1.cutOff = cos(glm::radians(5.0f));
+    mSpotLights.push_back(spotLight1);
 
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -68,7 +77,7 @@ void Game::update(float dt)
         camera->update(dt);
     }
 
-    mGameObjects[0]->yaw += 5.0f * dt;
+    mGameObjects[0]->yaw += 0.5f * dt;
 
     for (GameObject* go : mGameObjects) {
         go->update(dt);

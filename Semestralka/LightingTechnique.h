@@ -14,10 +14,10 @@ private:
 	GLuint mNumPointLightsLoc;
 	GLuint mNumSpotLightsLoc;
 
-	struct Attenuation {
-		float Const;
-		float Linear;
-		float Exp;
+	struct AttenuationLoc {
+		GLuint Const;
+		GLuint Linear;
+		GLuint Exp;
 	};
 
 	struct {
@@ -25,7 +25,7 @@ private:
 		GLuint ambientIntensity;
 		GLuint diffuseIntensity;
 		GLuint position;
-		Attenuation attenuation;
+		AttenuationLoc attenuation;
 	} mPointLightsLoc[MAX_POINT_LIGHTS];
 
 	struct {
@@ -34,8 +34,8 @@ private:
 		GLuint diffuseIntensity;
 		GLuint position;
 		GLuint direction;
-		float cutOff;
-		Attenuation attenuation;
+		GLuint cutOff;
+		AttenuationLoc attenuation;
 	} mSpotLightsLoc[MAX_SPOT_LIGHTS];
 
 	GLuint mSpecularEnabledLoc;
@@ -60,6 +60,7 @@ public:
 	void supplyMaterial(const Material& material);
 	void supplyDirLight(const DirectionalLight& dirLight);
 	void supplyPointLights(const std::vector<PointLight>& pointLights);
+	void supplySpotLights(const std::vector<SpotLight>& spotLights);
 	void supplyPVMMatrix(const glm::mat4& PVMMatrix);
 	void supplyModelMatrix(const glm::mat4& modelMatrix);
 	void bindTextureUnits();

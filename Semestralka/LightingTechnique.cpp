@@ -31,6 +31,18 @@ void LightingTechnique::init()
 		mPointLightsLoc[i].attenuation.Linear = glGetUniformLocation(mShader->getProgramID(), ("u_PointLights[" + std::to_string(i) + "].Attenuation.Linear").c_str());
 		mPointLightsLoc[i].attenuation.Exp = glGetUniformLocation(mShader->getProgramID(), ("u_PointLights[" + std::to_string(i) + "].Attenuation.Exp").c_str());
 	}
+
+	for (unsigned int i = 0; i < MAX_SPOT_LIGHTS; ++i) {
+		mSpotLightsLoc[i].color = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Base.Color").c_str());
+		mSpotLightsLoc[i].ambientIntensity = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Base.AmbientIntensity").c_str());
+		mSpotLightsLoc[i].diffuseIntensity = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Base.DiffuseIntensity").c_str());
+		mSpotLightsLoc[i].position = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Position").c_str());
+		mSpotLightsLoc[i].attenuation.Const = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Attenuation.Const").c_str());
+		mSpotLightsLoc[i].attenuation.Linear = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Attenuation.Linear").c_str());
+		mSpotLightsLoc[i].attenuation.Exp = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Base.Attenuation.Exp").c_str());
+		mSpotLightsLoc[i].direction = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Direction").c_str());
+		mSpotLightsLoc[i].cutOff  = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].CutOff").c_str());
+	}
 }
 
 LightingTechnique::LightingTechnique(Shader* shader) : ShaderTechnique(shader)
@@ -69,6 +81,24 @@ void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLi
 	}
 }
 
+void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLights)
+{
+	glUniform1i(mNumSpotLightsLoc, spotLights.size());
+	for (unsigned int i = 0; i < spotLights.size(); ++i) {
+		const SpotLight& light = spotLights[i];
+
+		glUniform3f(mSpotLightsLoc[i].color, light.color.r, light.color.g, light.color.b);
+		glUniform1f(mSpotLightsLoc[i].ambientIntensity, light.ambientIntensity);
+		glUniform1f(mSpotLightsLoc[i].diffuseIntensity, light.diffuseIntensity);
+		glUniform3fv(mSpotLightsLoc[i].position, 1, &light.position[0]);
+		glUniform1f(mSpotLightsLoc[i].attenuation.Const, light.attenuation.Const);
+		glUniform1f(mSpotLightsLoc[i].attenuation.Linear, light.attenuation.Linear);
+		glUniform1f(mSpotLightsLoc[i].attenuation.Exp, light.attenuation.Exp);
+		glUniform3fv(mSpotLightsLoc[i].direction, 1, &glm::normalize(light.direction)[0]);
+		glUniform1f(mSpotLightsLoc[i].cutOff, light.cutOff);
+	}
+}
+
 void LightingTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix)
 {
 	glUniformMatrix4fv(PVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
@@ -102,6 +132,7 @@ void LightingTechnique::prepare(const Game& game)
 	bindTextureUnits();
 	supplyDirLight(game.getDirectionalLight());
 	supplyPointLights(game.getPointLights());
+	supplySpotLights(game.getSpotLights());
 	supplyCameraPosition(game.getCamera("main").position);
 }
 

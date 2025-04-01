@@ -31,3 +31,11 @@ public:
 
 	PointLight();
 };
+
+class SpotLight : public PointLight {
+public:
+	glm::vec3 direction;
+	float cutOff;
+
+	SpotLight();
+};
