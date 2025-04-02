@@ -2,9 +2,17 @@
 #include <iostream>
 #include "AssetManager.h"
 
+Mesh::Mesh() {
+	mGeometry = nullptr;
+	position = glm::vec3(0.0f);
+	scale = glm::vec3(1.0f);
+	pitch = 0;
+	yaw = 0;
+}
+
 void Mesh::initFromScene(const aiScene* scene, const std::string& path)
 {
-	mDrawCalls.resize(scene->mNumMeshes);
+	mGeometry->drawCalls.resize(scene->mNumMeshes);
 	mMaterials.resize(scene->mNumMaterials);
 
 	int numVertices = 0;
@@ -23,10 +31,10 @@ void Mesh::initFromScene(const aiScene* scene, const std::string& path)
 
 void Mesh::initSingleMesh(aiMesh* mesh, unsigned int index, int& numVertices, int& numIndices)
 {
-	mDrawCalls[index].baseVertex = numVertices;
-	mDrawCalls[index].baseIndex = numIndices;
-	mDrawCalls[index].numIndices = mesh->mNumFaces * 3;
-	mDrawCalls[index].materialIndex = mesh->mMaterialIndex;
+	mGeometry->drawCalls[index].baseVertex = numVertices;
+	mGeometry->drawCalls[index].baseIndex = numIndices;
+	mGeometry->drawCalls[index].numIndices = mesh->mNumFaces * 3;
+	mGeometry->drawCalls[index].materialIndex = mesh->mMaterialIndex;
 
 	aiVector3D zero3D(0.0f, 0.0f, 0.0f);
 
@@ -35,24 +43,24 @@ void Mesh::initSingleMesh(aiMesh* mesh, unsigned int index, int& numVertices, in
 		const aiVector3D& texCoord = mesh->HasTextureCoords(0) ? mesh->mTextureCoords[0][i] : zero3D;
 		const aiVector3D& normal = mesh->mNormals[i];
 
-		Vertex v;
+		Geometry::Vertex v;
 		v.position = glm::vec3(position.x, position.y, position.z);
 		v.texCoord = glm::vec2(texCoord.x, texCoord.y);
 		v.normal = glm::vec3(normal.x, normal.y, normal.z);
 
-		mVertices.push_back(v);
+		mGeometry->vertices.push_back(v);
 	}
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
 		const aiFace& face = mesh->mFaces[i];
 
 		for (unsigned int j = 0; j < face.mNumIndices; ++j) {
-			mIndices.push_back(face.mIndices[j]);
+			mGeometry->indices.push_back(face.mIndices[j]);
 		}
 	}
 
 	numVertices += mesh->mNumVertices;
-	numIndices += mDrawCalls[index].numIndices;
+	numIndices += mGeometry->drawCalls[index].numIndices;
 }
 
 void Mesh::initMaterial(aiMaterial* material, unsigned int index, const std::string& directory)
@@ -102,52 +110,33 @@ void Mesh::loadFromFile(const std::string& path)
 	const aiScene* scene = importer.ReadFile(path, MESH_IMPORT_FLAGS);
 
 	if (scene) {
+		mGeometry = new Geometry();
+
 		initFromScene(scene, path);
 
-		init();
+		mGeometry->initBuffers();
 	}
 	else {
 		std::cout << "Mesh failed to load\n";
 	}
 }
 
-void Mesh::init()
-{
-	glGenVertexArrays(1, &mVAO);
-	glBindVertexArray(mVAO);
-
-	glGenBuffers(NUM_BUFFERS, mBuffers);
-
-	glBindBuffer(GL_ARRAY_BUFFER, mBuffers[BufferType::VERTEX]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * mVertices.size(), &mVertices[0], GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[BufferType::INDEX]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mIndices.size(), &mIndices[0], GL_STATIC_DRAW);
-
-	glBindVertexArray(0);
-}
-
 void Mesh::draw(DrawCallbacks* drawCallbacks) const
 {
-	glBindVertexArray(mVAO);
+	glBindVertexArray(mGeometry->getVAO());
 
-	for (unsigned int i = 0; i < mDrawCalls.size(); ++i) {
-		const Material& material = mMaterials[mDrawCalls[i].materialIndex];
+	for (unsigned int i = 0; i < mGeometry->drawCalls.size(); ++i) {
+		const Material& material = mMaterials[mGeometry->drawCalls[i].materialIndex];
 
 		if (drawCallbacks) {
+			drawCallbacks->supplyMaterial(material);
 
 			if (material.diffuseTexture) {
 				material.diffuseTexture->bind(GL_TEXTURE0);
-				drawCallbacks->supplyMaterial(material);
+				drawCallbacks->enableDiffuseTexture(true);
+			}
+			else {
+				drawCallbacks->enableDiffuseTexture(false);
 			}
 
 			if (material.specularTexture) {
@@ -159,23 +148,25 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 			}
 		}
 
-		glDrawElementsBaseVertex(GL_TRIANGLES, mDrawCalls[i].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * mDrawCalls[i].baseIndex), mDrawCalls[i].baseVertex);
+		glDrawElementsBaseVertex(GL_TRIANGLES, mGeometry->drawCalls[i].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * mGeometry->drawCalls[i].baseIndex), mGeometry->drawCalls[i].baseVertex);
 	}
 
 	glBindVertexArray(0);
 }
 
-Quad::Quad() {
-	mVertices = {
-		{ {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, 0.5f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, -0.5f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} }
-	};
-	mIndices = { 0, 1, 2, 0, 2, 3 };
-	mDrawCalls = {
-		{0, 0, 6, 0}
-	};
+void Mesh::setMaterial(unsigned int idx, const Material& mat)
+{
+	if (mMaterials.size() < idx) {
+		mMaterials.resize(idx);
+	}
+	mMaterials.insert(mMaterials.begin() + idx, mat);
+}
 
-	init();
+void Mesh::computeModelMatrix()
+{
+	mMatrix = glm::mat4(1.0f);
+	mMatrix = glm::scale(mMatrix, scale);
+	mMatrix = glm::rotate(mMatrix, pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+	mMatrix = glm::rotate(mMatrix, yaw, glm::vec3(0.0f, cos(pitch), sin(pitch)));
+	mMatrix = glm::translate(glm::mat4(1.0f), position) * mMatrix;
 }

@@ -3,15 +3,8 @@
 #include "pgr.h"
 
 struct Viewport {
-	int x, y;
-	int width, height;
-
-	Viewport(int w, int h) : width(w), height(h) {
-		x = 0;
-		y = 0;
-	}
-
-	Viewport(int x, int y, int w, int h) : width(w), height(h), x(x), y(y) {}
+	int x = 0, y = 0;
+	int width = 0, height = 0;
 };
 
 class Camera {
@@ -30,7 +23,7 @@ public:
 	float Near;
 	float Far;
 
-	Camera(const Viewport& viewport): viewport(viewport) {
+	Camera() {
 		position = glm::vec3(0.0f, 0.0f, 5.0f);
 		zoom = 1.0f;
 		direction = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -85,9 +78,6 @@ public:
 		float halfHeight = viewport.height / 2.0f * zoom;
 		mProjMatrix = glm::orthoRH(-halfWidth, halfWidth, -halfHeight, halfHeight, 0.1f, 100.0f);
 	}
-
-	OrthoCamera(const Viewport& viewport) : Camera(viewport) {
-	}
 };
 
 class PerspectiveCamera : public Camera {
@@ -95,9 +85,10 @@ private:
 	float mFov;
 public:
 
-	PerspectiveCamera(const Viewport& viewport, float pFov, float pNear, float pFar) : Camera(viewport), mFov(pFov) {
-		Near = pNear;
-		Far = pFar;
+	PerspectiveCamera() {
+		mFov = glm::radians(60.0f);
+		Near = 0.1f;
+		Far = 100.0f;
 	}
 
 	void updateProjection() override {

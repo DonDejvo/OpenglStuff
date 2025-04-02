@@ -7,6 +7,7 @@ void LightingTechnique::init()
 	mMaterialLoc.ambientColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.AmbientColor");
 	mMaterialLoc.diffuseColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.DiffuseColor");
 	mMaterialLoc.specularColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.SpecularColor");
+	mMaterialLoc.shininess = glGetUniformLocation(mShader->getProgramID(), "u_Material.Shininess");
 
 	mDirLightLoc.color = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.Color");
 	mDirLightLoc.ambientIntensity = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.AmbientIntensity");
@@ -17,6 +18,8 @@ void LightingTechnique::init()
 	mTextureLoc[1] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
 
 	mSpecularEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_SpecularEnabled");
+	mDiffuseEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_DiffuseTextureEnabled");
+
 	mCameraPosLoc = glGetUniformLocation(mShader->getProgramID(), "u_CameraPosition");
 
 	mNumPointLightsLoc = glGetUniformLocation(mShader->getProgramID(), "u_NumPointLights");
@@ -45,19 +48,15 @@ void LightingTechnique::init()
 	}
 }
 
-LightingTechnique::LightingTechnique(Shader* shader) : ShaderTechnique(shader)
-{
-	init();
-}
-
-void LightingTechnique::supplyMaterial(const Material& material)
+void LightingTechnique::supplyMaterial(const Material& material) const
 {
 	glUniform3f(mMaterialLoc.ambientColor, material.ambientColor.r, material.ambientColor.g, material.ambientColor.b);
 	glUniform3f(mMaterialLoc.diffuseColor, material.diffuseColor.r, material.diffuseColor.g, material.diffuseColor.b);
 	glUniform3f(mMaterialLoc.specularColor, material.specularColor.r, material.specularColor.g, material.specularColor.b);
+	glUniform1f(mMaterialLoc.shininess, material.shininess);
 }
 
-void LightingTechnique::supplyDirLight(const DirectionalLight& dirLight)
+void LightingTechnique::supplyDirLight(const DirectionalLight& dirLight) const
 {
 	glUniform3f(mDirLightLoc.color, dirLight.color.r, dirLight.color.g, dirLight.color.b);
 	glUniform1f(mDirLightLoc.ambientIntensity, dirLight.ambientIntensity);
@@ -65,7 +64,7 @@ void LightingTechnique::supplyDirLight(const DirectionalLight& dirLight)
 	glUniform3fv(mDirLightLoc.direction, 1, &glm::normalize(dirLight.worldDirection)[0]);
 }
 
-void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLights)
+void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLights) const
 {
 	glUniform1i(mNumPointLightsLoc, pointLights.size());
 	for (unsigned int i = 0; i < pointLights.size(); ++i) {
@@ -81,7 +80,7 @@ void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLi
 	}
 }
 
-void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLights)
+void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLights) const
 {
 	glUniform1i(mNumSpotLightsLoc, spotLights.size());
 	for (unsigned int i = 0; i < spotLights.size(); ++i) {
@@ -99,17 +98,17 @@ void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLight
 	}
 }
 
-void LightingTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix)
+void LightingTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix) const
 {
 	glUniformMatrix4fv(PVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
 }
 
-void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix)
+void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const
 {
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 }
 
-void LightingTechnique::bindTextureUnits()
+void LightingTechnique::bindTextureUnits() const
 {
 	for (unsigned int i = 0; i < NUM_TEX; ++i) {
 		glActiveTexture(GL_TEXTURE0 + i);
@@ -117,31 +116,17 @@ void LightingTechnique::bindTextureUnits()
 	}
 }
 
-void LightingTechnique::enableSpecularTexture(bool value)
+void LightingTechnique::enableSpecularTexture(bool value) const
 {
 	glUniform1i(mSpecularEnabledLoc, value ? 1 : 0);
 }
 
-void LightingTechnique::supplyCameraPosition(const glm::vec3& pos)
+void LightingTechnique::enableDiffuseTexture(bool value) const
+{
+	glUniform1i(mDiffuseEnabledLoc, value ? 1 : 0);
+}
+
+void LightingTechnique::supplyCameraPosition(const glm::vec3& pos) const
 {
 	glUniform3fv(mCameraPosLoc, 1, &pos[0]);
-}
-
-void LightingTechnique::prepare(const Game& game)
-{
-	bindTextureUnits();
-	supplyDirLight(game.getDirectionalLight());
-	supplyPointLights(game.getPointLights());
-	supplySpotLights(game.getSpotLights());
-	supplyCameraPosition(game.getCamera("main").position);
-}
-
-void LightingTechnique::processGameObject(const GameObject& go)
-{
-
-	glm::mat4 PVMMatrix = go.getCamera().getPVMatrix() * go.getMatrix();
-	supplyModelMatrix(go.getMatrix());
-	supplyPVMMatrix(PVMMatrix);
-
-	go.getMesh().draw(this);
 }

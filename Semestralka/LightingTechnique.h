@@ -2,6 +2,7 @@
 
 #include "ShaderTechnique.h"
 #include "Material.h"
+#include "Lights.h"
 
 constexpr unsigned int NUM_TEX = 2;
 constexpr unsigned int MAX_POINT_LIGHTS = 2;
@@ -39,6 +40,7 @@ private:
 	} mSpotLightsLoc[MAX_SPOT_LIGHTS];
 
 	GLuint mSpecularEnabledLoc;
+	GLuint mDiffuseEnabledLoc;
 
 	GLuint mCameraPosLoc;
 
@@ -46,6 +48,7 @@ private:
 		GLuint ambientColor;
 		GLuint diffuseColor;
 		GLuint specularColor;
+		GLuint shininess;
 	} mMaterialLoc;
 
 	struct {
@@ -56,16 +59,14 @@ private:
 	} mDirLightLoc;
 public:
 	void init() override;
-	LightingTechnique(Shader* shader);
-	void supplyMaterial(const Material& material);
-	void supplyDirLight(const DirectionalLight& dirLight);
-	void supplyPointLights(const std::vector<PointLight>& pointLights);
-	void supplySpotLights(const std::vector<SpotLight>& spotLights);
-	void supplyPVMMatrix(const glm::mat4& PVMMatrix);
-	void supplyModelMatrix(const glm::mat4& modelMatrix);
-	void bindTextureUnits();
-	void enableSpecularTexture(bool value);
-	void supplyCameraPosition(const glm::vec3& pos);
-	void prepare(const Game& game) override;
-	void processGameObject(const GameObject& go) override;
+	void supplyMaterial(const Material& material) const;
+	void supplyDirLight(const DirectionalLight& dirLight) const;
+	void supplyPointLights(const std::vector<PointLight>& pointLights) const;
+	void supplySpotLights(const std::vector<SpotLight>& spotLights) const;
+	void supplyPVMMatrix(const glm::mat4& PVMMatrix) const;
+	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
+	void bindTextureUnits() const;
+	void enableSpecularTexture(bool value) const;
+	void enableDiffuseTexture(bool value) const;
+	void supplyCameraPosition(const glm::vec3& pos) const;
 };

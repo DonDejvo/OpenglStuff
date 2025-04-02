@@ -134,7 +134,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="LightDemo.cpp" />
     <ClCompile Include="LightingTechnique.cpp" />
     <ClCompile Include="Lights.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -142,6 +143,8 @@
     <ClCompile Include="Semestralka.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderTechnique.cpp" />
+    <ClCompile Include="ShadowMapFBO.cpp" />
+    <ClCompile Include="ShadowMapTechnique.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -150,13 +153,17 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DrawCallbacks.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Geometry.h" />
+    <ClInclude Include="LightDemo.h" />
     <ClInclude Include="LightingTechnique.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="mathUtils.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderTechnique.h" />
+    <ClInclude Include="ShadowMapFBO.h" />
+    <ClInclude Include="ShadowMapTechnique.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

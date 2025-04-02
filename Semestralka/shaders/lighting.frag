@@ -7,6 +7,7 @@ struct Material {
     vec3 AmbientColor;
     vec3 DiffuseColor;
     vec3 SpecularColor;
+    float Shininess;
 };
 
 struct BaseLight {
@@ -44,6 +45,7 @@ in vec3 v_WorldPosition;
 
 uniform sampler2D u_TextureDiffuse;
 uniform bool u_SpecularEnabled = false;
+uniform bool u_DiffuseTextureEnabled = false;
 uniform sampler2D u_TextureSpecular;
 uniform Material u_Material;
 uniform DirectionalLight u_DirectionalLight;
@@ -72,7 +74,7 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal) {
         float specularFactor = dot(pixelToCamera, lightReflect);
 
         if(specularFactor > 0.0) {
-            float specularExponent = 128.0;
+            float specularExponent = u_Material.Shininess * 255.0;
 
             if(u_SpecularEnabled) {
                 specularExponent = texture(u_TextureSpecular, v_TexCoord).r * 255.0;
@@ -125,7 +127,10 @@ vec4 CalcPhongLighting() {
         totalLighting += CalcSpotLight(u_SpotLights[i], normal);
     }
 
-    vec4 finalColor = texture(u_TextureDiffuse, v_TexCoord) * totalLighting;
+    vec4 finalColor = totalLighting;
+    if(u_DiffuseTextureEnabled) {
+        finalColor *= texture(u_TextureDiffuse, v_TexCoord);
+    }
 
     return finalColor;
 }

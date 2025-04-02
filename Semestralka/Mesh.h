@@ -5,49 +5,39 @@
 #include "Texture.h"
 #include "Material.h"
 #include "DrawCallbacks.h"
+#include "Geometry.h"
 
-constexpr size_t NUM_BUFFERS = 5;
 constexpr unsigned int MESH_IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs;
 
 class Mesh {
 private:
-	enum BufferType {
-		VERTEX = 0,
-		INDEX = 1
-	};
-
-	GLuint mVAO;
-	GLuint mBuffers[NUM_BUFFERS];
-
 	void initFromScene(const aiScene* scene, const std::string& path);
 	void initSingleMesh(aiMesh* mesh, unsigned int index, int& numVertices, int& numIndices);
 	void initMaterial(aiMaterial* material, unsigned int index, const std::string& directory);
 protected:
-	struct Vertex {
-		glm::vec3 position;
-		glm::vec2 texCoord;
-		glm::vec3 normal;
-	};
-	std::vector<Vertex> mVertices;
-	std::vector<unsigned int> mIndices;
-	
-	struct DrawCall {
-		int baseVertex;
-		int baseIndex;
-		int numIndices;
-		int materialIndex;
-	};
-
-	std::vector<DrawCall> mDrawCalls;
+	glm::mat4 mMatrix;
+	Geometry* mGeometry;
 	std::vector<Material> mMaterials;
 
 public:
-	void loadFromFile(const std::string& path);
-	void init();
-	void draw(DrawCallbacks* drawCallbacks) const;
-};
+	glm::vec3 position;
+	glm::vec3 scale;
+	float pitch, yaw;
 
-class Quad : public Mesh {
-public:
-	Quad();
+	Mesh();
+
+	void loadFromFile(const std::string& path);
+	void draw(DrawCallbacks* drawCallbacks) const;
+
+	inline void setGeometry(Geometry* geom) {
+		mGeometry = geom;
+	}
+
+	void setMaterial(unsigned int idx, const Material& mat);
+
+	inline const glm::mat4& getMatrix() const {
+		return mMatrix;
+	}
+
+	void computeModelMatrix();
 };

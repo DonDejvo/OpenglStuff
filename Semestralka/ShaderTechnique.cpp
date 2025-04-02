@@ -6,9 +6,9 @@ void ShaderTechnique::init()
 	modelLocation = glGetUniformLocation(mShader->getProgramID(), "u_Model");
 }
 
-ShaderTechnique::ShaderTechnique(Shader* shader): mShader(shader)
+void ShaderTechnique::setShader(Shader* shader)
 {
-	init();
+	mShader = shader;
 }
 
 void ShaderTechnique::use() const

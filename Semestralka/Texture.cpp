@@ -14,6 +14,14 @@ void Texture::bind(GLenum texUnit) const
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
 }
 
+void Texture::create(int width, int height)
+{
+	mImageWidth = width;
+	mImageHeight = height;
+
+	glGenTextures(1, &mTextureID);
+}
+
 void Texture::loadFromFile(const std::string& path)
 {
 	mTextureID = pgr::createTexture(path);
