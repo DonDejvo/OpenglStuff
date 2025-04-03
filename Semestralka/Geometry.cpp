@@ -68,7 +68,7 @@ void PlaneGeometry::init()
 		for (unsigned int j = 0; j < (unsigned int)widthSegments; ++j) {
 			unsigned int indexCache[] = { 
 				j + i * (widthSegments + 1),j + 1 + i * (widthSegments + 1), j + 1 + (i + 1) * (widthSegments + 1),
-				j + i * (widthSegments + 1),j + (i + 1) * (widthSegments + 1), j + 1 + (i + 1) * (widthSegments + 1)
+				j + 1 + (i + 1) * (widthSegments + 1), j + (i + 1) * (widthSegments + 1), j + i * (widthSegments + 1)
 			};
 			for (unsigned int k = 0; k < 6; ++k) {
 				indices.push_back(indexCache[k]);
