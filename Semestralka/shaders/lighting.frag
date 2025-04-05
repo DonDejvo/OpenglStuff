@@ -12,7 +12,7 @@ struct Material {
 
 struct BaseLight {
     vec3 Color;
-    float AmbietIntensity;
+    float AmbientIntensity;
     float DiffuseIntensity;
 };
 
@@ -42,11 +42,15 @@ struct SpotLight {
 in vec2 v_TexCoord;
 in vec3 v_Normal;
 in vec3 v_WorldPosition;
+in vec4 v_LightSpacePosition;
 
-uniform sampler2D u_TextureDiffuse;
 uniform bool u_SpecularEnabled = false;
 uniform bool u_DiffuseTextureEnabled = false;
+
+uniform sampler2D u_TextureDiffuse;
 uniform sampler2D u_TextureSpecular;
+uniform sampler2D u_ShadowMap;
+
 uniform Material u_Material;
 uniform DirectionalLight u_DirectionalLight;
 uniform vec3 u_CameraPosition;
@@ -57,8 +61,27 @@ uniform int u_NumSpotLights;
 
 out vec4 FragColor;
 
-vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal) {
-    vec4 ambientColor = vec4(light.Color, 1.0) * light.AmbietIntensity * vec4(u_Material.AmbientColor, 1.0);
+vec3 CalcShadowCoords() {
+    vec3 projCoords = v_LightSpacePosition.xyz / v_LightSpacePosition.w;
+    vec3 shadowCoords = projCoords * 0.5 + vec3(0.5);
+    return shadowCoords;
+}
+
+float CalcShadowFactor()
+{
+    vec3 shadowCoords = CalcShadowCoords();
+
+    float depth = texture(u_ShadowMap, shadowCoords.xy).r;
+    float bias = 0.005;
+
+    if(shadowCoords.z - bias > depth) {
+        return 0.5;
+    }
+    return 1.0;
+}
+
+vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, float shadowFactor) {
+    vec4 ambientColor = vec4(light.Color, 1.0) * light.AmbientIntensity * vec4(u_Material.AmbientColor, 1.0);
 
     vec4 diffuseColor = vec4(0.0);
     vec4 specularColor = vec4(0.0);
@@ -86,11 +109,12 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal) {
         }
     }
 
-    return ambientColor + diffuseColor + specularColor;
+    return ambientColor + (diffuseColor + specularColor) * shadowFactor;
 }
 
 vec4 CalcDirectionalLight(vec3 normal) {
-    return CalcLightInternal(u_DirectionalLight.Base, u_DirectionalLight.Direction, normal);
+    float shadowFactor = CalcShadowFactor();
+    return CalcLightInternal(u_DirectionalLight.Base, u_DirectionalLight.Direction, normal, shadowFactor);
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal) {
@@ -98,7 +122,8 @@ vec4 CalcPointLight(PointLight light, vec3 normal) {
     float dist = length(direction);
     direction = normalize(direction);
 
-    vec4 color = CalcLightInternal(light.Base, direction, normal);
+    float shadowFactor = CalcShadowFactor();
+    vec4 color = CalcLightInternal(light.Base, direction, normal, shadowFactor);
 
     return color / (light.Attenuation.Const + dist * (light.Attenuation.Linear + dist * light.Attenuation.Exp));
 }

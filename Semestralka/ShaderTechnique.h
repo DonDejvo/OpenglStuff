@@ -5,8 +5,6 @@
 
 class ShaderTechnique : public DrawCallbacks {
 protected:
-	GLuint PVMLocation;
-	GLuint modelLocation;
 	Shader* mShader;
 
 public:

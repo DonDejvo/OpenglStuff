@@ -3,29 +3,18 @@
 #include <map>
 #include <string>
 #include "Texture.h"
+#include "Mesh.h"
 
 class AssetManager {
 private:
 	static AssetManager* instance;
 
 	std::map<std::string, Texture*> textureMap;
+	std::map<std::string, Mesh::Data> meshMap;
 public:
-	static AssetManager* get() {
-		if (instance == nullptr) {
-			instance = new AssetManager();
-		}
-		return instance;
-	}
+	static AssetManager* get();
 
-	static Texture* getTexture(const std::string& path) {
+	Texture* getTexture(const std::string& path);
 
-		if (get()->textureMap.find(path) == get()->textureMap.end()) {
-			Texture* texture = new Texture();
-			texture->loadFromFile(path);
-			get()->textureMap[path] = texture;
-		}
-		return get()->textureMap[path];
-	}
+	Mesh::Data getMesh(const std::string& path);
 };
-
-AssetManager* AssetManager::instance = nullptr;

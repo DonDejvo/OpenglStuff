@@ -4,6 +4,10 @@ void LightingTechnique::init()
 {
 	ShaderTechnique::init();
 
+	PVMLocation = glGetUniformLocation(mShader->getProgramID(), "u_PVM");
+	modelLocation = glGetUniformLocation(mShader->getProgramID(), "u_Model");
+	lightPVMLocation = glGetUniformLocation(mShader->getProgramID(), "u_LightPVM");
+
 	mMaterialLoc.ambientColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.AmbientColor");
 	mMaterialLoc.diffuseColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.DiffuseColor");
 	mMaterialLoc.specularColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.SpecularColor");
@@ -16,6 +20,7 @@ void LightingTechnique::init()
 
 	mTextureLoc[0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureDiffuse");
 	mTextureLoc[1] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
+	mTextureLoc[2] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowMap");
 
 	mSpecularEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_SpecularEnabled");
 	mDiffuseEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_DiffuseTextureEnabled");
@@ -101,6 +106,11 @@ void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLight
 void LightingTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix) const
 {
 	glUniformMatrix4fv(PVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
+}
+
+void LightingTechnique::supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const
+{
+	glUniformMatrix4fv(lightPVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
 }
 
 void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const

@@ -50,3 +50,8 @@ public:
 	int heightSegments = 8;
 	void init() override;
 };
+
+class CubeGeometry : public Geometry {
+public:
+	void init() override;
+};

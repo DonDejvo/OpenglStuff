@@ -11,6 +11,10 @@ public:
 	int width, height;
 	ShadowMapFBO();
 	void init();
-	void bindForWriting();
-	void bindForReading();
+	void bind() const;
+	void unbind() const;
+
+	inline Texture& getShadowMap() {
+		return mShadowMap;
+	}
 };

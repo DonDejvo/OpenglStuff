@@ -28,7 +28,7 @@ public:
 		zoom = 1.0f;
 		direction = glm::vec3(0.0f, 0.0f, -1.0f);
 		worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-		Near = 0.1f;
+		Near = 1.0f;
 		Far = 100.0f;
 	}
 
@@ -74,9 +74,9 @@ public:
 class OrthoCamera : public Camera {
 public:
 	void updateProjection() override {
-		float halfWidth = viewport.width / 2.0f * zoom;
-		float halfHeight = viewport.height / 2.0f * zoom;
-		mProjMatrix = glm::orthoRH(-halfWidth, halfWidth, -halfHeight, halfHeight, 0.1f, 100.0f);
+		float halfWidth = viewport.width / 2.0f / zoom;
+		float halfHeight = viewport.height / 2.0f / zoom;
+		mProjMatrix = glm::orthoRH(-halfWidth, halfWidth, -halfHeight, halfHeight, Near, Far);
 	}
 };
 
@@ -87,8 +87,6 @@ public:
 
 	PerspectiveCamera() {
 		mFov = glm::radians(60.0f);
-		Near = 0.1f;
-		Far = 100.0f;
 	}
 
 	void updateProjection() override {

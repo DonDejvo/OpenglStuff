@@ -14,12 +14,19 @@ void Texture::bind(GLenum texUnit) const
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
 }
 
-void Texture::create(int width, int height)
+void Texture::create(int width, int height, const CreateParams& params)
 {
 	mImageWidth = width;
 	mImageHeight = height;
 
 	glGenTextures(1, &mTextureID);
+	glBindTexture(GL_TEXTURE_2D, mTextureID);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, params.format, width, height, 0, params.format, params.type, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.filter);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Texture::loadFromFile(const std::string& path)

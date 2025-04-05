@@ -3,6 +3,7 @@
 
 ShadowMapFBO::ShadowMapFBO()
 {
+	mFbo = 0;
 	width = 1024;
 	height = 1024;
 }
@@ -11,16 +12,13 @@ void ShadowMapFBO::init()
 {
 	glGenFramebuffers(1, &mFbo);
 	
-	mShadowMap.create(width, height);
-	mShadowMap.bind(GL_TEXTURE0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mShadowMap.getWidth(), mShadowMap.getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	Texture::CreateParams params;
+	params.format = GL_DEPTH_COMPONENT;
+	params.type = GL_FLOAT;
+	mShadowMap.create(width, height, params);
 
 	glBindBuffer(GL_FRAMEBUFFER, mFbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMap.getTexID(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mShadowMap.getTexID(), 0);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -31,5 +29,16 @@ void ShadowMapFBO::init()
 		std::cout << "Framebuffer Failed: " << status << "\n";
 	}
 
+	glBindBuffer(GL_FRAMEBUFFER, 0);
+}
+
+void ShadowMapFBO::bind() const
+{
+	glBindBuffer(GL_FRAMEBUFFER, mFbo);
+	glViewport(0, 0, width, height);
+}
+
+void ShadowMapFBO::unbind() const
+{
 	glBindBuffer(GL_FRAMEBUFFER, 0);
 }

@@ -4,12 +4,16 @@
 #include "Material.h"
 #include "Lights.h"
 
-constexpr unsigned int NUM_TEX = 2;
+constexpr unsigned int NUM_TEX = 3;
 constexpr unsigned int MAX_POINT_LIGHTS = 2;
 constexpr unsigned int MAX_SPOT_LIGHTS = 2;
 
 class LightingTechnique : public ShaderTechnique {
-private:
+protected:
+	GLuint PVMLocation;
+	GLuint modelLocation;
+	GLuint lightPVMLocation;
+
 	GLuint mTextureLoc[NUM_TEX];
 
 	GLuint mNumPointLightsLoc;
@@ -64,6 +68,7 @@ public:
 	void supplyPointLights(const std::vector<PointLight>& pointLights) const;
 	void supplySpotLights(const std::vector<SpotLight>& spotLights) const;
 	void supplyPVMMatrix(const glm::mat4& PVMMatrix) const;
+	void supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const;
 	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
 	void bindTextureUnits() const;
 	void enableSpecularTexture(bool value) const;

@@ -17,7 +17,7 @@ void Game::update(float dt)
 {  
 }
 
-void Game::draw() const
+void Game::draw()
 {
 }
 

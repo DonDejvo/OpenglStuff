@@ -21,7 +21,7 @@ public:
 	Game(const GameConfig& config);
 	virtual void init();
 	virtual void update(float dt);
-	virtual void draw() const;
+	virtual void draw();
 	virtual void destroy();
 	virtual void onKey(unsigned char keyPressed);
 
