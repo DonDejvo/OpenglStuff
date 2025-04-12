@@ -15,7 +15,12 @@ private:
 	static void onClose();
 	static void onTimer(int);
 	static void onKeyboard(unsigned char keyPressed, int mouseX, int mouseY);
+	static void onKeyboardUp(unsigned char keyReleased, int mouseX, int mouseY);
 	static void onReshape(int newWidth, int newHeight);
+	static void onMouse(int button, int state, int x, int y);
+	static void onPassiveMouseMotion(int mouseX, int mouseY);
+	static void onMouseMotion(int x, int y);
+	static void onMouseWheel(int wheel, int direction, int x, int y);
 
 	int mWinWidth;
 	int mWinHeight;

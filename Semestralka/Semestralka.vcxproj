@@ -138,8 +138,14 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="CameraMovement.cpp" />
+    <ClCompile Include="mathUtils.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerCamera.cpp" />
+    <ClCompile Include="SkyboxTechnique.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Geometry.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="LightDemo.cpp" />
     <ClCompile Include="LightingTechnique.cpp" />
     <ClCompile Include="Lights.cpp" />
@@ -152,12 +158,21 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="ShadowMapFBO.cpp" />
     <ClCompile Include="ShadowMapTechnique.cpp" />
     <ClCompile Include="SimpleTechnique.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TerrainTechnique.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraMovement.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerCamera.h" />
+    <ClInclude Include="SkyboxTechnique.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="SkyBox.h" />
     <ClInclude Include="DrawCallbacks.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Geometry.h" />
@@ -173,6 +188,8 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="ShadowMapFBO.h" />
     <ClInclude Include="ShadowMapTechnique.h" />
     <ClInclude Include="SimpleTechnique.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TerrainTechnique.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

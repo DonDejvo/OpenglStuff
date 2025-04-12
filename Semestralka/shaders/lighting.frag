@@ -70,6 +70,9 @@ vec3 CalcShadowCoords() {
 float CalcShadowFactor()
 {
     vec3 shadowCoords = CalcShadowCoords();
+    if(shadowCoords.x < 0.0 || shadowCoords.x > 1.0 || shadowCoords.y < 0.0 || shadowCoords.y > 1.0) {
+        return 1.0;
+    }
 
     float depth = texture(u_ShadowMap, shadowCoords.xy).r;
     float bias = 0.005;
@@ -154,7 +157,11 @@ vec4 CalcPhongLighting() {
 
     vec4 finalColor = totalLighting;
     if(u_DiffuseTextureEnabled) {
-        finalColor *= texture(u_TextureDiffuse, v_TexCoord);
+        vec4 texColor = texture(u_TextureDiffuse, v_TexCoord);
+        if(texColor.a < 0.5) {
+            discard;
+        }
+        finalColor *= texColor;
     }
 
     return finalColor;

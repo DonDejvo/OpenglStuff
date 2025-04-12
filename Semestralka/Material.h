@@ -23,3 +23,11 @@ public:
 		shininess = 0.5f;
 	}
 };
+
+class TerrainMaterial : public Material {
+public:
+	Texture* blendMap;
+	Texture* diffuseTextureRed;
+	Texture* diffuseTextureGreen;
+	Texture* diffuseTextureBlue;
+};

@@ -14,6 +14,8 @@ private:
 	GLuint mVAO;
 	GLuint mBuffers[NUM_BUFFERS];
 public:
+	glm::vec3 scale = glm::vec3(1.0f);
+
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec2 texCoord;
@@ -33,6 +35,7 @@ public:
 
 	virtual void init();
 	void initBuffers();
+	void draw(unsigned int idx) const;
 
 	inline GLuint getVAO() const {
 		return mVAO;
@@ -49,6 +52,8 @@ public:
 	int widthSegments = 8;
 	int heightSegments = 8;
 	void init() override;
+	void recalculateNormals();
+	float getHeight(int x, int y) const;
 };
 
 class CubeGeometry : public Geometry {

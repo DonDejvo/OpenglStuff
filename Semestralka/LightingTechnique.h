@@ -1,10 +1,10 @@
 #pragma once
 
+#include <vector>
 #include "ShaderTechnique.h"
 #include "Material.h"
 #include "Lights.h"
 
-constexpr unsigned int NUM_TEX = 3;
 constexpr unsigned int MAX_POINT_LIGHTS = 2;
 constexpr unsigned int MAX_SPOT_LIGHTS = 2;
 
@@ -14,7 +14,7 @@ protected:
 	GLuint modelLocation;
 	GLuint lightPVMLocation;
 
-	GLuint mTextureLoc[NUM_TEX];
+	std::vector<GLuint> mTextureLoc;
 
 	GLuint mNumPointLightsLoc;
 	GLuint mNumSpotLightsLoc;

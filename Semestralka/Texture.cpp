@@ -25,6 +25,8 @@ void Texture::create(int width, int height, const CreateParams& params)
 	glTexImage2D(GL_TEXTURE_2D, 0, params.format, width, height, 0, params.format, params.type, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.filter);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

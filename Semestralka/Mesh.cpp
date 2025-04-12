@@ -157,7 +157,7 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 			}
 		}
 
-		glDrawElementsBaseVertex(GL_TRIANGLES, mData.geometry->drawCalls[i].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * mData.geometry->drawCalls[i].baseIndex), mData.geometry->drawCalls[i].baseVertex);
+		mData.geometry->draw(i);
 	}
 
 	glBindVertexArray(0);

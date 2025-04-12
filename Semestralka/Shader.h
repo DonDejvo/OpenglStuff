@@ -6,7 +6,7 @@
 
 class Shader {
 private:
-	GLuint mProgramID;
+	GLuint mProgramID = 0;
 public:
 	void loadFromString(const char* vertexSource, const char* fragmentSource);
 	void loadFromFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);

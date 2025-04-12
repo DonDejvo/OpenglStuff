@@ -18,6 +18,7 @@ void LightingTechnique::init()
 	mDirLightLoc.diffuseIntensity = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.DiffuseIntensity");
 	mDirLightLoc.direction = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Direction");
 
+	mTextureLoc.resize(3);
 	mTextureLoc[0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureDiffuse");
 	mTextureLoc[1] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
 	mTextureLoc[2] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowMap");
@@ -120,7 +121,7 @@ void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const
 
 void LightingTechnique::bindTextureUnits() const
 {
-	for (unsigned int i = 0; i < NUM_TEX; ++i) {
+	for (unsigned int i = 0; i < mTextureLoc.size(); ++i) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glUniform1i(mTextureLoc[i], i);
 	}

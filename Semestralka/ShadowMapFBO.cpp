@@ -15,10 +15,14 @@ void ShadowMapFBO::init()
 	Texture::CreateParams params;
 	params.format = GL_DEPTH_COMPONENT;
 	params.type = GL_FLOAT;
+	params.filter = GL_NEAREST;
+	params.wrap = GL_CLAMP_TO_EDGE;
 	mShadowMap.create(width, height, params);
 
-	glBindBuffer(GL_FRAMEBUFFER, mFbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mShadowMap.getTexID(), 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, mFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMap.getTexID(), 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -26,19 +30,19 @@ void ShadowMapFBO::init()
 		std::cout << "Framebuffer OK\n";
 	}
 	else {
-		std::cout << "Framebuffer Failed: " << status << "\n";
+		std::cout << "ERROR: Framebuffer Failed: " << status << "\n";
 	}
 
-	glBindBuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void ShadowMapFBO::bind() const
 {
-	glBindBuffer(GL_FRAMEBUFFER, mFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, mFbo);
 	glViewport(0, 0, width, height);
 }
 
 void ShadowMapFBO::unbind() const
 {
-	glBindBuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

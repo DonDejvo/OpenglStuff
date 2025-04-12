@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include "AssetManager.h"
+#include "Input.h"
 
 void LightDemo::init()
 {
@@ -10,6 +11,8 @@ void LightDemo::init()
 	shadowShader.loadFromFiles("shaders/shadow.vert", "shaders/shadow.frag");
 	screenShader.loadFromFiles("shaders/screen.vert", "shaders/screen.frag");
 	simpleShader.loadFromFiles("shaders/simple.vert", "shaders/simple.frag");
+	skyboxShader.loadFromFiles("shaders/skybox.vert", "shaders/skybox.frag");
+	terrainShader.loadFromFiles("shaders/terrain.vert", "shaders/terrain.frag");
 
 	lightingTechnique.setShader(&lightShader);
 	lightingTechnique.init();
@@ -23,16 +26,36 @@ void LightDemo::init()
 	simpleTechnique.setShader(&simpleShader);
 	simpleTechnique.init();
 
+	cubemapTechnique.setShader(&skyboxShader);
+	cubemapTechnique.init();
+
+	terrainTechnique.setShader(&terrainShader);
+	terrainTechnique.init();
+
 	mainCamera.position = glm::vec3(0.0f, 5.0f, 10.0f);
 	mainCamera.direction = glm::vec3(0.0f, -0.5f, -2.0f);
+	mainCamera.Near = 0.1f;
+	mainCamera.Far = 1000.0f;
+
+	cameraMovement.setCamera(&mainCamera);
+	cameraMovement.enabled = false;
 
 	lightCamera.position = glm::vec3(0.0f, 20.0f, 10.0f);
 	lightCamera.direction = glm::vec3(0.0f, -2.0f, -1.0f);
-	lightCamera.viewport.width = 25;
-	lightCamera.viewport.height = 25;
+	lightCamera.viewport.width = 64;
+	lightCamera.viewport.height = 64;
 	lightCamera.Near = 1.0f;
 	lightCamera.Far = 100.0f;
 	lightCamera.updateProjection();
+
+	skybox.loadFromFiles({
+		"data/skybox/vz_classic_land_right.png",
+		"data/skybox/vz_classic_land_left.png",
+		"data/skybox/vz_classic_land_up.png",
+		"data/skybox/vz_classic_land_down.png",
+		"data/skybox/vz_classic_land_front.png",
+		"data/skybox/vz_classic_land_back.png"
+	});
 
 	dirLight.diffuseIntensity = 0.9f;
 	dirLight.ambientIntensity = 0.1f;
@@ -79,26 +102,50 @@ void LightDemo::init()
 	cubeGeometry.init();
 	cubeGeometry.initBuffers();
 
+	skyboxGeometry.scale *= 2.0f;
+	skyboxGeometry.init();
+	skyboxGeometry.initBuffers();
+
+	cubemapTechnique.setGeomtry(&skyboxGeometry);
+
 	colorMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	colorMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
-	backpack.loadFromFile("data/backpack/backpack.obj");
-	/*backpack.scale *= 3.0f;
-	backpack.setGeometry(&cubeGeometry);
-	backpack.setMaterial(0, &colorMaterial);*/
-	backpack.position.x = 0.0f;
-	backpack.position.y = 2.0f;
-	backpack.position.z = -0.5f;
+	terrainMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	terrainMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	terrainMaterial.blendMap = AssetManager::get()->getTexture("data/blendmaps/blendmap_01.png");
+	terrainMaterial.diffuseTexture = AssetManager::get()->getTexture("data/grass/Grass_01.png");
+	terrainMaterial.diffuseTextureRed = AssetManager::get()->getTexture("data/brick_ground/Ground_01.png");
+	terrainMaterial.diffuseTextureGreen = AssetManager::get()->getTexture("data/grass/Grass_04.png");
+	terrainMaterial.diffuseTextureBlue = AssetManager::get()->getTexture("data/dirt/Dirt_01.png");
 
-	backpack1.loadFromFile("data/backpack/backpack.obj");
-	backpack1.position.x = -4.0f;
-	backpack1.position.y = 2.0f;
-	backpack1.position.z = -2.5f;
+	player.init();
+	player.setTerrain(&terrain);
+
+	playerCamera.setCamera(&mainCamera);
+	playerCamera.setPlayer(&player);
 
 	plane.setGeometry(&planeGeometry);
-	plane.setMaterial(0, &colorMaterial);
+	plane.setMaterial(0, &terrainMaterial);
+	plane.scale *= 60.0f;
 
-	plane.scale *= 30.0f;
+	terrain.setSegments(255, 255);
+	terrain.size = worldSize;
+	terrain.init();
+	Terrain::HeightMapConfig heightmapConfig;
+	heightmapConfig.maxHeight = 20.0f;
+	terrain.loadFromHeightMap("data/heightmaps/single_hill.png", heightmapConfig);
+	terrain.setMaterial(&terrainMaterial);
+
+	for (unsigned int i = 0; i < 100; ++i) {
+		Mesh tree;
+		tree.loadFromFile("data/trees/tree.obj");
+		tree.position.x = rand() % 100 / 100.0f * worldSize;
+		tree.position.z = rand() % 100 / 100.0f * worldSize;
+		tree.position.y = terrain.getHeightAtPosition(tree.position);
+
+		trees.push_back(tree);
+	}
 
 	cube.setGeometry(&cubeGeometry);
 	cube.setMaterial(0, &colorMaterial);
@@ -108,28 +155,9 @@ void LightDemo::init()
 	cube.position.y = 2.0f;
 	cube.position.z = -2.5f;
 
-	/*shadowMapFBO.width = 1024;
+	shadowMapFBO.width = 1024;
 	shadowMapFBO.height = 1024;
-	shadowMapFBO.init();*/
-
-	Texture::CreateParams params;
-	params.format = GL_DEPTH_COMPONENT;
-	params.type = GL_FLOAT;
-	params.filter = GL_NEAREST;
-	framebufferTexture.create(1024, 1024, params);
-
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebufferTexture.getTexID(), 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	/*glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1024, 1024);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);*/
+	shadowMapFBO.init();
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -140,6 +168,10 @@ void LightDemo::update(float dt)
 {
 	Window* win = Window::get();
 
+	if (Input::get()->isKeyClicked('c')) {
+		cameraMovement.enabled = !cameraMovement.enabled;
+	}
+
 	//backpack.yaw += 1.0f * dt;
 	//cube.yaw += 1.0f * dt;
 	//cube.pitch += -0.5f * dt;
@@ -149,20 +181,24 @@ void LightDemo::update(float dt)
 		dirLightAngle -= AI_MATH_TWO_PI;
 	}
 
-	float angle = (dirLightAngle < AI_MATH_PI ? dirLightAngle : AI_MATH_TWO_PI - dirLightAngle) + AI_MATH_PI;
+	float angle = dirLightAngle;// (dirLightAngle < AI_MATH_PI ? dirLightAngle : AI_MATH_TWO_PI - dirLightAngle) + AI_MATH_PI;
 
-	angle = 5.7f;
+	dirLight.worldDirection.x = cos(angle) * 2.5f;
+	dirLight.worldDirection.z = sin(angle) * 2.5f;
 
-	dirLight.worldDirection.x = cos(angle) * 3.0f;
-	dirLight.worldDirection.z = sin(angle) * 3.0f;
-
-	lightCamera.position = glm::vec3(-dirLight.worldDirection.x * 5.0f, -dirLight.worldDirection.y * 5.0f, -dirLight.worldDirection.z * 5.0f);
+	lightCamera.position = glm::vec3(-dirLight.worldDirection.x * 5.0f + mainCamera.position.x, -dirLight.worldDirection.y * 5.0f, -dirLight.worldDirection.z * 5.0f + mainCamera.position.z);
 	lightCamera.direction = glm::vec3(dirLight.worldDirection);
 
-	backpack.computeModelMatrix();
-	backpack1.computeModelMatrix();
+	for (auto& tree : trees) {
+		tree.computeModelMatrix();
+	}
 	plane.computeModelMatrix();
 	cube.computeModelMatrix();
+	terrain.computeModelMatrix();
+	player.update(dt);
+
+	cameraMovement.update(dt);
+	playerCamera.update(dt);
 
 	mainCamera.onResize(win->getWinWdth(), win->getWinHeight());
 	mainCamera.update(dt);
@@ -172,75 +208,34 @@ void LightDemo::update(float dt)
 
 void LightDemo::draw()
 {
-	/*glm::mat4 PVMMatrix;
-
-	shadowMapFBO.bind();
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	shadowMapTechnique.use();
-
-	PVMMatrix = lightCamera.getPVMatrix() * backpack.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(PVMMatrix);
-
-	backpack.draw((DrawCallbacks*)&shadowMapTechnique);
-
-	shadowMapFBO.unbind();
-
-	Window* win = Window::get();
-
-	glViewport(0, 0, win->getWinWdth(), win->getWinHeight());
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	lightingTechnique.use();
-
-	lightingTechnique.bindTextureUnits();
-
-	lightingTechnique.supplyCameraPosition(mainCamera.position);
-	lightingTechnique.supplyDirLight(dirLight);
-	lightingTechnique.supplyPointLights(pointLights);
-	lightingTechnique.supplySpotLights(spotLights);
-
-	shadowMapFBO.getShadowMap().bind(GL_TEXTURE2);
-
-	lightingTechnique.supplyModelMatrix(backpack.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * backpack.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	backpack.draw((DrawCallbacks*)&lightingTechnique);
-
-	lightingTechnique.supplyModelMatrix(plane.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * plane.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	plane.draw((DrawCallbacks*)&lightingTechnique);*/
-
 	glm::mat4 PVMMatrix, lightPVMMatrix;
 
-	//shadowMapFBO.bind();
-
-	glViewport(0, 0, 1024, 1024);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	shadowMapFBO.bind();
 
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	shadowMapTechnique.use();
 
-	lightPVMMatrix = lightCamera.getPVMatrix() * backpack.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-	backpack.draw((DrawCallbacks*)&shadowMapTechnique);
-
-	lightPVMMatrix = lightCamera.getPVMatrix() * backpack1.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-	backpack1.draw((DrawCallbacks*)&shadowMapTechnique);
+	for (auto& tree : trees) {
+		lightPVMMatrix = lightCamera.getPVMatrix() * tree.getMatrix();
+		shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
+		tree.draw((DrawCallbacks*)&shadowMapTechnique);
+	}
 
 	lightPVMMatrix = lightCamera.getPVMatrix() * cube.getMatrix();
 	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
 	cube.draw((DrawCallbacks*)&shadowMapTechnique);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	lightPVMMatrix = lightCamera.getPVMatrix() * player.getMatrix();
+	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
+	player.draw((DrawCallbacks*)&shadowMapTechnique);
 
-	//shadowMapFBO.unbind();
+	lightPVMMatrix = lightCamera.getPVMatrix() * terrain.getMatrix();
+	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
+	terrain.draw((DrawCallbacks*)&shadowMapTechnique);
+
+	shadowMapFBO.unbind();
 
 	Window* win = Window::get();
 
@@ -260,21 +255,17 @@ void LightDemo::draw()
 	lightingTechnique.supplyPointLights(pointLights);
 	lightingTechnique.supplySpotLights(spotLights);
 
-	framebufferTexture.bind(GL_TEXTURE2);
+	shadowMapFBO.getShadowMap().bind(GL_TEXTURE2);
 
-	lightingTechnique.supplyModelMatrix(backpack.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * backpack.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * backpack.getMatrix();
-	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	backpack.draw((DrawCallbacks*)&lightingTechnique);
 
-	lightingTechnique.supplyModelMatrix(backpack1.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * backpack1.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * backpack1.getMatrix();
-	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	backpack1.draw((DrawCallbacks*)&lightingTechnique);
+	for (auto& tree : trees) {
+		lightingTechnique.supplyModelMatrix(tree.getMatrix());
+		PVMMatrix = mainCamera.getPVMatrix() * tree.getMatrix();
+		lightingTechnique.supplyPVMMatrix(PVMMatrix);
+		lightPVMMatrix = lightCamera.getPVMatrix() * tree.getMatrix();
+		lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
+		tree.draw((DrawCallbacks*)&lightingTechnique);
+	}
 
 	lightingTechnique.supplyModelMatrix(cube.getMatrix());
 	PVMMatrix = mainCamera.getPVMatrix() * cube.getMatrix();
@@ -283,10 +274,45 @@ void LightDemo::draw()
 	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
 	cube.draw((DrawCallbacks*)&lightingTechnique);
 
-	lightingTechnique.supplyModelMatrix(plane.getMatrix());
+	lightingTechnique.supplyModelMatrix(player.getMatrix());
+	PVMMatrix = mainCamera.getPVMatrix() * player.getMatrix();
+	lightingTechnique.supplyPVMMatrix(PVMMatrix);
+	lightPVMMatrix = lightCamera.getPVMatrix() * player.getMatrix();
+	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
+	player.draw((DrawCallbacks*)&lightingTechnique);
+
+	terrainTechnique.use();
+
+	terrainTechnique.bindTextureUnits();
+
+	terrainTechnique.supplyCameraPosition(mainCamera.position);
+	terrainTechnique.supplyDirLight(dirLight);
+	terrainTechnique.supplyPointLights(pointLights);
+	terrainTechnique.supplySpotLights(spotLights);
+
+	shadowMapFBO.getShadowMap().bind(GL_TEXTURE2);
+
+	terrainTechnique.supplyModelMatrix(terrain.getMatrix());
+	PVMMatrix = mainCamera.getPVMatrix() * terrain.getMatrix();
+	terrainTechnique.supplyPVMMatrix(PVMMatrix);
+	lightPVMMatrix = lightCamera.getPVMatrix() * terrain.getMatrix();
+	terrainTechnique.supplyLightPVMMatrix(lightPVMMatrix);
+	terrain.draw((DrawCallbacks*)&terrainTechnique);
+
+	/*lightingTechnique.supplyModelMatrix(plane.getMatrix());
 	PVMMatrix = mainCamera.getPVMatrix() * plane.getMatrix();
 	lightingTechnique.supplyPVMMatrix(PVMMatrix);
 	lightPVMMatrix = lightCamera.getPVMatrix() * plane.getMatrix();
 	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	plane.draw((DrawCallbacks*)&lightingTechnique);
+	plane.draw((DrawCallbacks*)&lightingTechnique);*/
+
+	cubemapTechnique.use();
+	skybox.bind(GL_TEXTURE0);
+	cubemapTechnique.supplyPVMatrix(mainCamera.getProjMatrix() * glm::mat4(glm::mat3(mainCamera.getViewMatrix())));
+	cubemapTechnique.draw();
+}
+
+void LightDemo::onMouseMove(int mouseX, int mouseY)
+{
+	
 }

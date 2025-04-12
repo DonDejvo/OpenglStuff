@@ -13,6 +13,7 @@ public:
 		GLenum format = GL_RGBA;
 		GLenum type = GL_UNSIGNED_BYTE;
 		GLint filter = GL_LINEAR;
+		GLint wrap = GL_CLAMP_TO_EDGE;
 	};
 
 	Texture();

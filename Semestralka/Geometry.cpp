@@ -29,12 +29,20 @@ void Geometry::initBuffers() {
 	glBindVertexArray(0);
 }
 
+void Geometry::draw(unsigned int idx) const
+{
+	glDrawElementsBaseVertex(GL_TRIANGLES, drawCalls[idx].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * drawCalls[idx].baseIndex), drawCalls[idx].baseVertex);
+}
+
 void QuadGeometry::init() {
+	float halfScaleX = scale.x * 0.5f;
+	float halfScaleY = scale.y * 0.5f;
+
 	vertices = {
-		{ {-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, 0.5f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, -0.5f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} }
+		{ {-halfScaleX, halfScaleY, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{ {halfScaleX, halfScaleY, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{ {halfScaleX, -halfScaleY, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
+		{ {-halfScaleX, -halfScaleY, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} }
 	};
 	indices = { 0, 1, 2, 0, 2, 3 };
 	drawCalls = {
@@ -44,15 +52,17 @@ void QuadGeometry::init() {
 
 void PlaneGeometry::init()
 {
+	float halfScaleX = scale.x * 0.5f;
+	float halfScaleZ = scale.z * 0.5f;
 	
 	for (int i = 0; i <= heightSegments; ++i) {
 		float ty = (float)i / heightSegments;
-		float posY = step(-0.5f, 0.5f, ty);
-		float texCoordY = step(0.0f, 1.0f, ty);
+		float posY = step(-halfScaleZ, halfScaleZ, ty);
+		float texCoordY = step(1.0f, 0.0f, ty);
 
 		for (int j = 0; j <= widthSegments; ++j) {
 			float tx = (float)j / widthSegments;
-			float posX = step(-0.5f, 0.5f, tx);
+			float posX = step(-halfScaleX, halfScaleX, tx);
 			float texCoordX = step(0.0f, 1.0f, tx);
 
 			Vertex v;
@@ -79,39 +89,74 @@ void PlaneGeometry::init()
 	drawCalls = { { 0, 0, 6 * widthSegments * heightSegments, 0 } };
 }
 
+void PlaneGeometry::recalculateNormals()
+{
+	for (int i = 0; i <= heightSegments; ++i) {
+		for (int j = 0; j <= widthSegments; ++j) {
+			float heightL = getHeight(j - 1, i);
+			float heightR = getHeight(j + 1, i);
+			float heightT = getHeight(j, i - 1);
+			float heightB = getHeight(j, i + 1);
+
+			glm::vec3 normal = glm::vec3(heightL - heightR, 2.0f, heightT - heightB);
+			normal = glm::normalize(normal);
+
+			vertices[i * (widthSegments + 1) + j].normal = normal;
+		}
+	}
+}
+
+float PlaneGeometry::getHeight(int x, int y) const
+{
+	x = clamp(x, 0, widthSegments);
+	y = clamp(y, 0, heightSegments);
+	return vertices[y * (widthSegments + 1) + x].position.y;
+}
+
 void CubeGeometry::init()
 {
+	float halfScaleX = scale.x * 0.5f;
+	float halfScaleY = scale.y * 0.5f;
+	float halfScaleZ = scale.z * 0.5f;
+
+	glm::vec2 uvCache[] = {
+		{0.0f, 1.0f},
+		{1.0f, 1.0f},
+		{1.0f, 0.0f},
+		{0.0f, 0.0f}
+	};
+
 	vertices = {
 		// front
-		{ {-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {0.5f, -0.5f, 0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
-		{ {-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} },
+		{ {-halfScaleX, halfScaleY, halfScaleZ}, uvCache[0], {0.0f, 0.0f, 1.0f}},
+		{ {halfScaleX, halfScaleY, halfScaleZ}, uvCache[1], {0.0f, 0.0f, 1.0f} },
+		{ {halfScaleX, -halfScaleY, halfScaleZ}, uvCache[2], {0.0f, 0.0f, 1.0f} },
+		{ {-halfScaleX, -halfScaleY, halfScaleZ}, uvCache[3], {0.0f, 0.0f, 1.0f} },
 		// back
-		{ {0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 0.0f, -1.0f} },
-		{ {-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}, {0.0f, 0.0f, -1.0f} },
-		{ {-0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}, {0.0f, 0.0f, -1.0f} },
-		{ {0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, -1.0f} },
+		{ {halfScaleX, halfScaleY, -halfScaleZ}, uvCache[0], {0.0f, 0.0f, -1.0f} },
+		{ {-halfScaleX, halfScaleY, -halfScaleZ}, uvCache[1], {0.0f, 0.0f, -1.0f} },
+		{ {-halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[2], {0.0f, 0.0f, -1.0f} },
+		{ {halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[3], {0.0f, 0.0f, -1.0f} },
 		// left
-		{ {-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} },
-		{ {-0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} },
-		{ {-0.5f, -0.5f, 0.5f}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} },
-		{ {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} },
+		{ {-halfScaleX, halfScaleY, -halfScaleZ}, uvCache[0], {-1.0f, 0.0f, 0.0f} },
+		{ {-halfScaleX, halfScaleY, halfScaleZ}, uvCache[1], {-1.0f, 0.0f, 0.0f} },
+		{ {-halfScaleX, -halfScaleY, halfScaleZ}, uvCache[2], {-1.0f, 0.0f, 0.0f} },
+		{ {-halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[3], {-1.0f, 0.0f, 0.0f} },
 		// right
-		{ {0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
-		{ {0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} },
-		{ {0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
-		{ {0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} },
+		{ {halfScaleX, halfScaleY, halfScaleZ}, uvCache[0], {1.0f, 0.0f, 0.0f} },
+		{ {halfScaleX, halfScaleY, -halfScaleZ}, uvCache[1], {1.0f, 0.0f, 0.0f} },
+		{ {halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[2], {1.0f, 0.0f, 0.0f} },
+		{ {halfScaleX, -halfScaleY, halfScaleZ}, uvCache[3], {1.0f, 0.0f, 0.0f} },
 		// top
-		{ {-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-		{ {0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} },
-		{ {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
-		{ {-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} },
+		{ {-halfScaleX, halfScaleY, -halfScaleZ}, uvCache[0], {0.0f, 1.0f, 0.0f} },
+		{ {halfScaleX, halfScaleY, -halfScaleZ}, uvCache[1], {0.0f, 1.0f, 0.0f} },
+		{ {halfScaleX, halfScaleY, halfScaleZ}, uvCache[2], {0.0f, 1.0f, 0.0f} },
+		{ {-halfScaleX, halfScaleY, halfScaleZ}, uvCache[3], {0.0f, 1.0f, 0.0f} },
 		// bottom
-		{ {-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}, {0.0f, -1.0f, 0.0f} },
-		{ {0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}, {0.0f, -1.0f, 0.0f} },
-		{ {0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}, {0.0f, -1.0f, 0.0f} },
-		{ {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}, {0.0f, -1.0f, 0.0f} },
+		{ {-halfScaleX, -halfScaleY, halfScaleZ}, uvCache[0], {0.0f, -1.0f, 0.0f} },
+		{ {halfScaleX, -halfScaleY, halfScaleZ}, uvCache[1], {0.0f, -1.0f, 0.0f} },
+		{ {halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[2], {0.0f, -1.0f, 0.0f} },
+		{ {-halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[3], {0.0f, -1.0f, 0.0f} },
 	};
 	unsigned int indexCache[] = {0, 1, 2, 0, 2, 3};
 	for (unsigned int i = 0; i < 6; ++i) {

@@ -25,6 +25,6 @@ void Game::destroy()
 {  
 }
 
-void Game::onKey(unsigned char keyPressed)
+void Game::onMouseMove(int mouseX, int mouseY)
 {
 }
