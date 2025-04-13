@@ -141,7 +141,7 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 			drawCallbacks->supplyMaterial(*material);
 
 			if (material->diffuseTexture) {
-				material->diffuseTexture->bind(GL_TEXTURE0);
+				material->diffuseTexture->bind(DIFFUSE);
 				drawCallbacks->enableDiffuseTexture(true);
 			}
 			else {
@@ -149,11 +149,19 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 			}
 
 			if (material->specularTexture) {
-				material->specularTexture->bind(GL_TEXTURE1);
+				material->specularTexture->bind(SPECULAR);
 				drawCallbacks->enableSpecularTexture(true);
 			}
 			else {
 				drawCallbacks->enableSpecularTexture(false);
+			}
+
+			if (material->normalMap) {
+				material->normalMap->bind(NORMAL_MAP);
+				drawCallbacks->enableNormalMap(true);
+			}
+			else {
+				drawCallbacks->enableNormalMap(false);
 			}
 		}
 

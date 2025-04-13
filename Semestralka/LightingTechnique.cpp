@@ -2,7 +2,7 @@
 
 void LightingTechnique::init()
 {
-	ShaderTechnique::init();
+	FogTechnique::init();
 
 	PVMLocation = glGetUniformLocation(mShader->getProgramID(), "u_PVM");
 	modelLocation = glGetUniformLocation(mShader->getProgramID(), "u_Model");
@@ -18,13 +18,14 @@ void LightingTechnique::init()
 	mDirLightLoc.diffuseIntensity = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.DiffuseIntensity");
 	mDirLightLoc.direction = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Direction");
 
-	mTextureLoc.resize(3);
-	mTextureLoc[0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureDiffuse");
-	mTextureLoc[1] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
-	mTextureLoc[2] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowMap");
+	mTextureLoc[DIFFUSE - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureDiffuse");
+	mTextureLoc[SPECULAR - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
+	mTextureLoc[SHADOW_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowMap");
+	mTextureLoc[NORMAL_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_NormalMap");
 
 	mSpecularEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_SpecularEnabled");
 	mDiffuseEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_DiffuseTextureEnabled");
+	mNormalMapEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_NormalMapEnabled");
 
 	mCameraPosLoc = glGetUniformLocation(mShader->getProgramID(), "u_CameraPosition");
 
@@ -121,9 +122,10 @@ void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const
 
 void LightingTechnique::bindTextureUnits() const
 {
-	for (unsigned int i = 0; i < mTextureLoc.size(); ++i) {
-		glActiveTexture(GL_TEXTURE0 + i);
-		glUniform1i(mTextureLoc[i], i);
+	for (auto it = mTextureLoc.begin(); it != mTextureLoc.end(); ++it) {
+		const auto& entry = *it;
+		glActiveTexture(GL_TEXTURE0 + entry.first);
+		glUniform1i(entry.second, entry.first);
 	}
 }
 
@@ -135,6 +137,11 @@ void LightingTechnique::enableSpecularTexture(bool value) const
 void LightingTechnique::enableDiffuseTexture(bool value) const
 {
 	glUniform1i(mDiffuseEnabledLoc, value ? 1 : 0);
+}
+
+void LightingTechnique::enableNormalMap(bool value) const
+{
+	glUniform1i(mNormalMapEnabledLoc, value ? 1 : 0);
 }
 
 void LightingTechnique::supplyCameraPosition(const glm::vec3& pos) const

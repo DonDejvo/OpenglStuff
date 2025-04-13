@@ -7,6 +7,8 @@
 
 void LightDemo::init()
 {
+	worldSize = 600.0f;
+
 	lightShader.loadFromFiles("shaders/lighting.vert", "shaders/lighting.frag");
 	shadowShader.loadFromFiles("shaders/shadow.vert", "shaders/shadow.frag");
 	screenShader.loadFromFiles("shaders/screen.vert", "shaders/screen.frag");
@@ -40,11 +42,9 @@ void LightDemo::init()
 	cameraMovement.setCamera(&mainCamera);
 	cameraMovement.enabled = false;
 
-	lightCamera.position = glm::vec3(0.0f, 20.0f, 10.0f);
-	lightCamera.direction = glm::vec3(0.0f, -2.0f, -1.0f);
 	lightCamera.viewport.width = 64;
 	lightCamera.viewport.height = 64;
-	lightCamera.Near = 1.0f;
+	lightCamera.Near = 0.1f;
 	lightCamera.Far = 100.0f;
 	lightCamera.updateProjection();
 
@@ -56,6 +56,9 @@ void LightDemo::init()
 		"data/skybox/vz_classic_land_front.png",
 		"data/skybox/vz_classic_land_back.png"
 	});
+
+	fog.Color = glm::vec3(0.9f, 0.9f, 0.9f);
+	fog.Density = 0.005f;
 
 	dirLight.diffuseIntensity = 0.9f;
 	dirLight.ambientIntensity = 0.1f;
@@ -100,6 +103,7 @@ void LightDemo::init()
 	quadGeometry.initBuffers();
 
 	cubeGeometry.init();
+	cubeGeometry.computeTangents();
 	cubeGeometry.initBuffers();
 
 	skyboxGeometry.scale *= 2.0f;
@@ -115,15 +119,22 @@ void LightDemo::init()
 	terrainMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	terrainMaterial.blendMap = AssetManager::get()->getTexture("data/blendmaps/blendmap_01.png");
 	terrainMaterial.diffuseTexture = AssetManager::get()->getTexture("data/grass/Grass_01.png");
+	terrainMaterial.normalMap = AssetManager::get()->getTexture("data/grass/Grass_01_Nrm.png");
 	terrainMaterial.diffuseTextureRed = AssetManager::get()->getTexture("data/brick_ground/Ground_01.png");
+	terrainMaterial.normalMapRed = AssetManager::get()->getTexture("data/brick_ground/Ground_01_Nrm.png");
 	terrainMaterial.diffuseTextureGreen = AssetManager::get()->getTexture("data/grass/Grass_04.png");
+	terrainMaterial.normalMapGreen = AssetManager::get()->getTexture("data/grass/Grass_04_Nrm.png");
 	terrainMaterial.diffuseTextureBlue = AssetManager::get()->getTexture("data/dirt/Dirt_01.png");
+	terrainMaterial.normalMapBlue = AssetManager::get()->getTexture("data/dirt/Dirt_01_Nrm.png");
 
 	player.init();
 	player.setTerrain(&terrain);
 
 	playerCamera.setCamera(&mainCamera);
 	playerCamera.setPlayer(&player);
+
+	player.position.x = worldSize * 0.5f;
+	player.position.z = worldSize * 0.5f;
 
 	plane.setGeometry(&planeGeometry);
 	plane.setMaterial(0, &terrainMaterial);
@@ -150,18 +161,13 @@ void LightDemo::init()
 	cube.setGeometry(&cubeGeometry);
 	cube.setMaterial(0, &colorMaterial);
 	cube.scale *= 2.0f;
-	cube.scale.y *= 2.0f;
-	cube.position.x = 4.0f;
-	cube.position.y = 2.0f;
-	cube.position.z = -2.5f;
+	cube.position.x = worldSize * 0.5f;
+	cube.position.y = 20.0f;
+	cube.position.z = worldSize * 0.5f;
 
 	shadowMapFBO.width = 1024;
 	shadowMapFBO.height = 1024;
 	shadowMapFBO.init();
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void LightDemo::update(float dt)
@@ -183,11 +189,13 @@ void LightDemo::update(float dt)
 
 	float angle = dirLightAngle;// (dirLightAngle < AI_MATH_PI ? dirLightAngle : AI_MATH_TWO_PI - dirLightAngle) + AI_MATH_PI;
 
-	dirLight.worldDirection.x = cos(angle) * 2.5f;
-	dirLight.worldDirection.z = sin(angle) * 2.5f;
+	angle = 1.0f;
 
-	lightCamera.position = glm::vec3(-dirLight.worldDirection.x * 5.0f + mainCamera.position.x, -dirLight.worldDirection.y * 5.0f, -dirLight.worldDirection.z * 5.0f + mainCamera.position.z);
-	lightCamera.direction = glm::vec3(dirLight.worldDirection);
+	dirLight.worldDirection.x = cos(angle) * 1.5f;
+	dirLight.worldDirection.z = sin(angle) * 1.5f;
+
+	lightCamera.position = player.position - dirLight.worldDirection * 10.0f;
+	lightCamera.direction = dirLight.worldDirection;
 
 	for (auto& tree : trees) {
 		tree.computeModelMatrix();
@@ -209,6 +217,9 @@ void LightDemo::update(float dt)
 void LightDemo::draw()
 {
 	glm::mat4 PVMMatrix, lightPVMMatrix;
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	shadowMapFBO.bind();
 
@@ -255,7 +266,10 @@ void LightDemo::draw()
 	lightingTechnique.supplyPointLights(pointLights);
 	lightingTechnique.supplySpotLights(spotLights);
 
-	shadowMapFBO.getShadowMap().bind(GL_TEXTURE2);
+	lightingTechnique.enableFog(true);
+	lightingTechnique.supplyFog(fog);
+
+	shadowMapFBO.getShadowMap().bind(SHADOW_MAP);
 
 
 	for (auto& tree : trees) {
@@ -290,7 +304,10 @@ void LightDemo::draw()
 	terrainTechnique.supplyPointLights(pointLights);
 	terrainTechnique.supplySpotLights(spotLights);
 
-	shadowMapFBO.getShadowMap().bind(GL_TEXTURE2);
+	terrainTechnique.enableFog(true);
+	terrainTechnique.supplyFog(fog);
+
+	shadowMapFBO.getShadowMap().bind(SHADOW_MAP);
 
 	terrainTechnique.supplyModelMatrix(terrain.getMatrix());
 	PVMMatrix = mainCamera.getPVMatrix() * terrain.getMatrix();
@@ -306,8 +323,10 @@ void LightDemo::draw()
 	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
 	plane.draw((DrawCallbacks*)&lightingTechnique);*/
 
+	glCullFace(GL_FRONT);
+
 	cubemapTechnique.use();
-	skybox.bind(GL_TEXTURE0);
+	skybox.bind(DIFFUSE);
 	cubemapTechnique.supplyPVMatrix(mainCamera.getProjMatrix() * glm::mat4(glm::mat3(mainCamera.getViewMatrix())));
 	cubemapTechnique.draw();
 }

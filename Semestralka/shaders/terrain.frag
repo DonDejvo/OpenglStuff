@@ -39,13 +39,22 @@ struct SpotLight {
     float CutOff;
 };
 
+struct Fog {
+    vec3 Color;
+    float Density;
+    float Gradient;
+};
+
 in vec2 v_TexCoord;
 in vec3 v_Normal;
 in vec3 v_WorldPosition;
 in vec4 v_LightSpacePosition;
+in vec3 v_Tangent;
+in vec3 v_Bitangent;
 
 uniform bool u_SpecularEnabled = false;
 uniform bool u_DiffuseTextureEnabled = false;
+uniform bool u_NormalMapEnabled = false;
 
 uniform sampler2D u_TextureDiffuse;
 uniform sampler2D u_TextureDiffuseRed;
@@ -54,6 +63,10 @@ uniform sampler2D u_TextureDiffuseBlue;
 uniform sampler2D u_BlendMap;
 uniform sampler2D u_TextureSpecular;
 uniform sampler2D u_ShadowMap;
+uniform sampler2D u_NormalMap;
+uniform sampler2D u_NormalMapRed;
+uniform sampler2D u_NormalMapGreen;
+uniform sampler2D u_NormalMapBlue;
 
 uniform Material u_Material;
 uniform DirectionalLight u_DirectionalLight;
@@ -63,12 +76,21 @@ uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 uniform int u_NumPointLights;
 uniform int u_NumSpotLights;
 
+uniform bool u_FogEnabled = false;
+uniform Fog u_Fog;
+
 out vec4 FragColor;
 
 vec3 CalcShadowCoords() {
     vec3 projCoords = v_LightSpacePosition.xyz / v_LightSpacePosition.w;
     vec3 shadowCoords = projCoords * 0.5 + vec3(0.5);
     return shadowCoords;
+}
+
+float CalcFogFactor() {
+    float distFromCameraToPixel = distance(v_WorldPosition, u_CameraPosition);
+    float factor = exp(-pow(distFromCameraToPixel * u_Fog.Density, u_Fog.Gradient));
+    return clamp(factor, 0.0, 1.0);
 }
 
 float CalcShadowFactor()
@@ -150,6 +172,24 @@ vec4 CalcPhongLighting() {
     vec3 normal = normalize(v_Normal);
     vec2 tiledCoord = v_TexCoord * 40.0;
 
+    vec4 blendMapColor = texture(u_BlendMap, v_TexCoord);
+
+    float backgroundIntensity = 1.0 - (blendMapColor.r + blendMapColor.g + blendMapColor.b);
+
+    if(u_NormalMapEnabled) {
+        vec3 bumpMapNormal = backgroundIntensity * texture(u_NormalMap, tiledCoord).rgb +
+            blendMapColor.r * texture(u_NormalMapRed, tiledCoord).rgb +
+            blendMapColor.g * texture(u_NormalMapGreen, tiledCoord).rgb +
+            blendMapColor.b * texture(u_NormalMapBlue, tiledCoord).rgb;
+        bumpMapNormal = bumpMapNormal * 2.0 - vec3(1.0);
+
+        vec3 tangent = normalize(v_Tangent);
+        vec3 bitangent = normalize(v_Bitangent);
+        mat3 TBN = mat3(tangent, bitangent, normal);
+
+        normal = normalize(TBN * bumpMapNormal);
+    }
+
     vec4 totalLighting = CalcDirectionalLight(normal, tiledCoord);
 
     for(int i = 0; i < u_NumPointLights; ++i) {
@@ -162,9 +202,6 @@ vec4 CalcPhongLighting() {
 
     vec4 finalColor = totalLighting;
     if(u_DiffuseTextureEnabled) {
-        vec4 blendMapColor = texture(u_BlendMap, v_TexCoord);
-
-        float backgroundIntensity = 1.0 - (blendMapColor.r + blendMapColor.g + blendMapColor.b);
 
         vec4 texColor = backgroundIntensity * texture(u_TextureDiffuse, tiledCoord) +
             blendMapColor.r * texture(u_TextureDiffuseRed, tiledCoord) +
@@ -181,4 +218,8 @@ vec4 CalcPhongLighting() {
 
 void main() {
     FragColor = CalcPhongLighting();
+    if(u_FogEnabled) {
+        float fogFactor = CalcFogFactor();
+        FragColor = mix(vec4(u_Fog.Color, 1.0), FragColor, fogFactor);
+    }
 }

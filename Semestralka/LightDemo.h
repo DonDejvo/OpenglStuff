@@ -32,6 +32,7 @@ public:
 	TerrainTechnique terrainTechnique;
 
 	SkyBox skybox;
+	Fog fog;
 
 	DirectionalLight dirLight;
 	std::vector<PointLight> pointLights;
@@ -44,7 +45,7 @@ public:
 	TerrainMaterial terrainMaterial;
 	Material colorMaterial;
 
-	float worldSize = 400.0f;
+	float worldSize;
 
 	std::vector<Mesh> trees;
 	Mesh plane;

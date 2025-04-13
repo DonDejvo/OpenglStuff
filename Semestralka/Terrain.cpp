@@ -13,6 +13,7 @@ void Terrain::init()
 {
     mPlaneGeometry.scale = glm::vec3(size, 1.0f, size);
     mPlaneGeometry.init();
+    mPlaneGeometry.computeTangents();
     mPlaneGeometry.initBuffers();
 }
 
@@ -57,6 +58,8 @@ void Terrain::loadFromHeightMap(const char* path, HeightMapConfig config)
         }
     }
 
+    mPlaneGeometry.computeTangents();
+
     mPlaneGeometry.recalculateNormals();
     mPlaneGeometry.initBuffers();
 
@@ -78,11 +81,11 @@ void Terrain::draw(DrawCallbacks* drawCallbacks) const
         drawCallbacks->supplyMaterial(*mMaterial);
 
         if (mMaterial->diffuseTexture) {
-            mMaterial->diffuseTexture->bind(GL_TEXTURE0);
-            mMaterial->diffuseTextureRed->bind(GL_TEXTURE3);
-            mMaterial->diffuseTextureGreen->bind(GL_TEXTURE4);
-            mMaterial->diffuseTextureBlue->bind(GL_TEXTURE5);
-            mMaterial->blendMap->bind(GL_TEXTURE6);
+            mMaterial->diffuseTexture->bind(DIFFUSE);
+            mMaterial->diffuseTextureRed->bind(DIFFUSE_RED);
+            mMaterial->diffuseTextureGreen->bind(DIFFUSE_GREEN);
+            mMaterial->diffuseTextureBlue->bind(DIFFUSE_BLUE);
+            mMaterial->blendMap->bind(BLEND_MAP);
             drawCallbacks->enableDiffuseTexture(true);
         }
         else {
@@ -90,11 +93,22 @@ void Terrain::draw(DrawCallbacks* drawCallbacks) const
         }
 
         if (mMaterial->specularTexture) {
-            mMaterial->specularTexture->bind(GL_TEXTURE1);
+            mMaterial->specularTexture->bind(SPECULAR);
             drawCallbacks->enableSpecularTexture(true);
         }
         else {
             drawCallbacks->enableSpecularTexture(false);
+        }
+
+        if (mMaterial->normalMap) {
+            mMaterial->normalMap->bind(NORMAL_MAP);
+            mMaterial->normalMapRed->bind(NORMAL_MAP_RED);
+            mMaterial->normalMapGreen->bind(NORMAL_MAP_GREEN);
+            mMaterial->normalMapBlue->bind(NORMAL_MAP_BLUE);
+            drawCallbacks->enableNormalMap(true);
+        }
+        else {
+            drawCallbacks->enableNormalMap(false);
         }
     }
 

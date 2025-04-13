@@ -2,6 +2,18 @@
 
 #include "pgr.h"
 
+constexpr GLenum DIFFUSE = GL_TEXTURE0;
+constexpr GLenum SPECULAR = GL_TEXTURE1;
+constexpr GLenum SHADOW_MAP = GL_TEXTURE2;
+constexpr GLenum DIFFUSE_RED = GL_TEXTURE3;
+constexpr GLenum DIFFUSE_GREEN = GL_TEXTURE4;
+constexpr GLenum DIFFUSE_BLUE = GL_TEXTURE5;
+constexpr GLenum BLEND_MAP = GL_TEXTURE6;
+constexpr GLenum NORMAL_MAP = GL_TEXTURE7;
+constexpr GLenum NORMAL_MAP_RED = GL_TEXTURE8;
+constexpr GLenum NORMAL_MAP_GREEN = GL_TEXTURE9;
+constexpr GLenum NORMAL_MAP_BLUE = GL_TEXTURE10;
+
 class Texture {
 private:
 	GLuint mTextureID;

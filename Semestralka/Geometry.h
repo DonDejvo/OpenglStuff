@@ -20,6 +20,8 @@ public:
 		glm::vec3 position;
 		glm::vec2 texCoord;
 		glm::vec3 normal;
+		glm::vec3 tangent;
+		glm::vec3 bitangent;
 	};
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
@@ -36,10 +38,13 @@ public:
 	virtual void init();
 	void initBuffers();
 	void draw(unsigned int idx) const;
+	void computeTangents();
 
 	inline GLuint getVAO() const {
 		return mVAO;
 	}
+protected:
+	void computeTriangleTangent(Vertex& v1, Vertex& v2, Vertex& v3);
 };
 
 class QuadGeometry : public Geometry {

@@ -5,6 +5,7 @@ class Material {
 public:
 	Texture* diffuseTexture;
 	Texture* specularTexture;
+	Texture* normalMap;
 
 	glm::vec3 ambientColor;
 	glm::vec3 diffuseColor;
@@ -15,6 +16,7 @@ public:
 	Material() {
 		diffuseTexture = nullptr;
 		specularTexture = nullptr;
+		normalMap = nullptr;
 
 		ambientColor = glm::vec3(0.0f);
 		diffuseColor = glm::vec3(0.0f);
@@ -30,4 +32,7 @@ public:
 	Texture* diffuseTextureRed;
 	Texture* diffuseTextureGreen;
 	Texture* diffuseTextureBlue;
+	Texture* normalMapRed;
+	Texture* normalMapGreen;
+	Texture* normalMapBlue;
 };

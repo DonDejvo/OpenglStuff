@@ -1,20 +1,21 @@
 #pragma once
 
 #include <vector>
-#include "ShaderTechnique.h"
+#include <map>
+#include "FogTechnique.h"
 #include "Material.h"
 #include "Lights.h"
 
 constexpr unsigned int MAX_POINT_LIGHTS = 2;
 constexpr unsigned int MAX_SPOT_LIGHTS = 2;
 
-class LightingTechnique : public ShaderTechnique {
+class LightingTechnique : public FogTechnique {
 protected:
 	GLuint PVMLocation;
 	GLuint modelLocation;
 	GLuint lightPVMLocation;
 
-	std::vector<GLuint> mTextureLoc;
+	std::map<unsigned int, GLuint> mTextureLoc;
 
 	GLuint mNumPointLightsLoc;
 	GLuint mNumSpotLightsLoc;
@@ -45,6 +46,7 @@ protected:
 
 	GLuint mSpecularEnabledLoc;
 	GLuint mDiffuseEnabledLoc;
+	GLuint mNormalMapEnabledLoc;
 
 	GLuint mCameraPosLoc;
 
@@ -63,7 +65,7 @@ protected:
 	} mDirLightLoc;
 public:
 	void init() override;
-	void supplyMaterial(const Material& material) const;
+	void supplyMaterial(const Material& material) const override;
 	void supplyDirLight(const DirectionalLight& dirLight) const;
 	void supplyPointLights(const std::vector<PointLight>& pointLights) const;
 	void supplySpotLights(const std::vector<SpotLight>& spotLights) const;
@@ -71,7 +73,8 @@ public:
 	void supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const;
 	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
 	void bindTextureUnits() const;
-	void enableSpecularTexture(bool value) const;
-	void enableDiffuseTexture(bool value) const;
+	void enableSpecularTexture(bool value) const override;
+	void enableDiffuseTexture(bool value) const override;
+	void enableNormalMap(bool value) const override;
 	void supplyCameraPosition(const glm::vec3& pos) const;
 };

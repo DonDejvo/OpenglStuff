@@ -23,6 +23,12 @@ void Geometry::initBuffers() {
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[BufferType::INDEX]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
@@ -32,6 +38,58 @@ void Geometry::initBuffers() {
 void Geometry::draw(unsigned int idx) const
 {
 	glDrawElementsBaseVertex(GL_TRIANGLES, drawCalls[idx].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * drawCalls[idx].baseIndex), drawCalls[idx].baseVertex);
+}
+
+void Geometry::computeTangents()
+{
+	for (auto& v : vertices) {
+		v.tangent = glm::vec3(0.0f);
+		v.bitangent = glm::vec3(0.0f);
+	}
+
+	for (unsigned int i = 0; i < indices.size(); i += 3) {
+		unsigned int idx1 = indices[i];
+		unsigned int idx2 = indices[i + 1];
+		unsigned int idx3 = indices[i + 2];
+
+		computeTriangleTangent(vertices[idx1], vertices[idx2], vertices[idx3]);
+	}
+
+	for (auto& v : vertices) {
+		v.tangent = glm::normalize(v.tangent);
+		v.bitangent = glm::normalize(v.bitangent);
+	}
+}
+
+void Geometry::computeTriangleTangent(Vertex& v1, Vertex& v2, Vertex& v3)
+{
+	glm::vec3 vec1 = v1.position - v3.position;
+	glm::vec3 vec2 = v2.position - v3.position;
+
+	glm::vec2 deltaUV1 = v1.texCoord - v3.texCoord;
+	glm::vec2 deltaUV2 = v2.texCoord - v3.texCoord;
+
+	float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+	glm::vec3 tangent;
+	tangent.x = f * (deltaUV2.y * vec1.x - deltaUV1.y * vec2.x);
+	tangent.y = f * (deltaUV2.y * vec1.y - deltaUV1.y * vec2.y);
+	tangent.z = f * (deltaUV2.y * vec1.z - deltaUV1.y * vec2.z);
+	tangent = glm::normalize(tangent);
+
+	glm::vec3 bitangent;
+	bitangent.x = f * (-deltaUV2.x * vec1.x + deltaUV1.x * vec2.x);
+	bitangent.y = f * (-deltaUV2.x * vec1.y + deltaUV1.x * vec2.y);
+	bitangent.z = f * (-deltaUV2.x * vec1.z + deltaUV1.x * vec2.z);
+	bitangent = glm::normalize(bitangent);
+
+	v1.tangent += tangent;
+	v2.tangent += tangent;
+	v3.tangent += tangent;
+
+	v1.bitangent += bitangent;
+	v2.bitangent += bitangent;
+	v3.bitangent += bitangent;
 }
 
 void QuadGeometry::init() {
@@ -44,7 +102,7 @@ void QuadGeometry::init() {
 		{ {halfScaleX, -halfScaleY, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} },
 		{ {-halfScaleX, -halfScaleY, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} }
 	};
-	indices = { 0, 1, 2, 0, 2, 3 };
+	indices = { 0, 2, 1, 0, 3, 2 };
 	drawCalls = {
 		{0, 0, 6, 0}
 	};
@@ -77,8 +135,8 @@ void PlaneGeometry::init()
 	for (unsigned int i = 0; i < (unsigned int)heightSegments; ++i) {
 		for (unsigned int j = 0; j < (unsigned int)widthSegments; ++j) {
 			unsigned int indexCache[] = { 
-				j + i * (widthSegments + 1),j + 1 + i * (widthSegments + 1), j + 1 + (i + 1) * (widthSegments + 1),
-				j + 1 + (i + 1) * (widthSegments + 1), j + (i + 1) * (widthSegments + 1), j + i * (widthSegments + 1)
+				j + i * (widthSegments + 1), j + 1 + (i + 1) * (widthSegments + 1), j + 1 + i * (widthSegments + 1),
+				j + 1 + (i + 1) * (widthSegments + 1), j + i * (widthSegments + 1), j + (i + 1) * (widthSegments + 1)
 			};
 			for (unsigned int k = 0; k < 6; ++k) {
 				indices.push_back(indexCache[k]);
@@ -158,7 +216,7 @@ void CubeGeometry::init()
 		{ {halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[2], {0.0f, -1.0f, 0.0f} },
 		{ {-halfScaleX, -halfScaleY, -halfScaleZ}, uvCache[3], {0.0f, -1.0f, 0.0f} },
 	};
-	unsigned int indexCache[] = {0, 1, 2, 0, 2, 3};
+	unsigned int indexCache[] = {0, 2, 1, 0, 3, 2};
 	for (unsigned int i = 0; i < 6; ++i) {
 		for (unsigned int j = 0; j < 6; ++j) {
 			indices.push_back(i * 4 + indexCache[j]);

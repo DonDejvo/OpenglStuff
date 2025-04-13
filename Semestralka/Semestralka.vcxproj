@@ -139,6 +139,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
     <ClCompile Include="CameraMovement.cpp" />
+    <ClCompile Include="FogTechnique.cpp" />
     <ClCompile Include="mathUtils.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
@@ -168,6 +169,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraMovement.h" />
+    <ClInclude Include="FogTechnique.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="SkyboxTechnique.h" />

@@ -4,7 +4,7 @@
 Player::Player()
 {
 	mTerrain = nullptr;
-	moveSpeed = 10.0f;
+	moveSpeed = 20.0f;
 	turnSpeed = 5.0f;
 }
 
