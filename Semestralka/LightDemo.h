@@ -2,7 +2,6 @@
 
 #include "Game.h"
 #include "LightingTechnique.h"
-#include "ShadowMapFBO.h"
 #include "Geometry.h"
 #include "Mesh.h"
 #include "ShadowMapTechnique.h"
@@ -10,7 +9,6 @@
 #include "SimpleTechnique.h"
 #include "SkyboxTechnique.h"
 #include "SkyBox.h"
-#include "CameraMovement.h"
 #include "TerrainTechnique.h"
 #include "Terrain.h"
 #include "Player.h"
@@ -20,7 +18,6 @@ class LightDemo : public Game {
 public:
 	using Game::Game;
 
-	CameraMovement cameraMovement;
 	PerspectiveCamera mainCamera;
 	OrthoCamera lightCamera;
 	Shader lightShader, shadowShader, screenShader, simpleShader, skyboxShader, terrainShader;
@@ -53,8 +50,6 @@ public:
 	Terrain terrain;
 	Player player;
 	PlayerCamera playerCamera;
-
-	ShadowMapFBO shadowMapFBO;
 
 	void init() override;
 	void update(float dt) override;

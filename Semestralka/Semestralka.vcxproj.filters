@@ -48,9 +48,6 @@
     <ClCompile Include="LightDemo.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowMapFBO.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
     <ClCompile Include="ShadowMapTechnique.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -75,9 +72,6 @@
     <ClCompile Include="Input.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-    <ClCompile Include="CameraMovement.cpp">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
     <ClCompile Include="Terrain.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
@@ -94,6 +88,9 @@
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
     <ClCompile Include="FogTechnique.cpp">
+      <Filter>Zdrojové soubory</Filter>
+    </ClCompile>
+    <ClCompile Include="Framebuffer.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
   </ItemGroup>
@@ -134,9 +131,6 @@
     <ClInclude Include="Lights.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowMapFBO.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="LightDemo.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -161,9 +155,6 @@
     <ClInclude Include="SkyboxTechnique.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="CameraMovement.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="Input.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -180,6 +171,9 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="FogTechnique.h">
+      <Filter>Hlavičkové soubory</Filter>
+    </ClInclude>
+    <ClInclude Include="Framebuffer.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
   </ItemGroup>

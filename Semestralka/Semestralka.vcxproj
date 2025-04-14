@@ -138,8 +138,8 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="CameraMovement.cpp" />
     <ClCompile Include="FogTechnique.cpp" />
+    <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="mathUtils.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
@@ -156,7 +156,6 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="Semestralka.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderTechnique.cpp" />
-    <ClCompile Include="ShadowMapFBO.cpp" />
     <ClCompile Include="ShadowMapTechnique.cpp" />
     <ClCompile Include="SimpleTechnique.cpp" />
     <ClCompile Include="SkyBox.cpp" />
@@ -168,7 +167,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="CameraMovement.h" />
+    <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="FogTechnique.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCamera.h" />
@@ -187,7 +186,6 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="ScreenTechnique.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderTechnique.h" />
-    <ClInclude Include="ShadowMapFBO.h" />
     <ClInclude Include="ShadowMapTechnique.h" />
     <ClInclude Include="SimpleTechnique.h" />
     <ClInclude Include="Terrain.h" />

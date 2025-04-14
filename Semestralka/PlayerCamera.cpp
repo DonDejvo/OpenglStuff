@@ -17,14 +17,14 @@ void PlayerCamera::update(float dt)
 {
 	Window* win = Window::get();
 	if (Input::get()->isMouseButtonDown(GLUT_LEFT_BUTTON)) {
-		yaw += (float)Input::get()->getMouseDeltaX() / win->getWinWdth() * 10.0f;
+		yaw -= (float)Input::get()->getMouseDeltaX() / win->getWinWdth() * 10.0f;
 	}
 
 	if (Input::get()->isMouseButtonDown(GLUT_RIGHT_BUTTON)) {
 		pitch += (float)Input::get()->getMouseDeltaY() / win->getWinHeight() * 10.0f;
 	}
 
-	distance = distance - Input::get()->getWheelDelta() * 0.5f;
+	distance += Input::get()->getWheelDelta() * 0.5f;
 
 	glm::vec3 offset;
 

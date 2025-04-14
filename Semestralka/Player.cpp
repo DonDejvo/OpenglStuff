@@ -5,7 +5,7 @@ Player::Player()
 {
 	mTerrain = nullptr;
 	moveSpeed = 20.0f;
-	turnSpeed = 5.0f;
+	turnSpeed = 2.5f;
 }
 
 void Player::init()

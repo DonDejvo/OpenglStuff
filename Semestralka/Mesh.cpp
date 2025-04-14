@@ -11,6 +11,8 @@ Mesh::Mesh() {
 
 void Mesh::initFromScene(Data& data, const aiScene* scene, const std::string& path)
 {
+	data.geometry = new Geometry();
+
 	data.geometry->drawCalls.resize(scene->mNumMeshes);
 	data.materials.resize(scene->mNumMaterials);
 
@@ -26,6 +28,9 @@ void Mesh::initFromScene(Data& data, const aiScene* scene, const std::string& pa
 	for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
 		initMaterial(data, scene->mMaterials[i], i, directory);
 	}
+
+	data.geometry->computeTangents();
+	data.geometry->initBuffers();
 }
 
 void Mesh::initSingleMesh(Data& data, aiMesh* mesh, unsigned int index, int& numVertices, int& numIndices)
@@ -87,6 +92,16 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 		}
 	}
 
+	/*if (material->GetTextureCount(aiTextureType_HEIGHT) > 0) {
+		aiString path;
+		if (material->GetTexture(aiTextureType_HEIGHT, 0, &path) == AI_SUCCESS) {
+			std::string fileName(path.C_Str());
+			std::cout << "Normal tex name: " << fileName << "\n";
+			Texture* tex = AssetManager::get()->getTexture(directory + "/" + fileName);
+			data.materials[index]->normalMap = tex;
+		}
+	}*/
+
 	// Load colors
 	
 	aiColor4D color;
@@ -112,11 +127,7 @@ Mesh::Data Mesh::loadDataFromFile(const std::string& path)
 	const aiScene* scene = importer.ReadFile(path, MESH_IMPORT_FLAGS);
 
 	if (scene) {
-		data.geometry = new Geometry();
-
 		initFromScene(data, scene, path);
-
-		data.geometry->initBuffers();
 	}
 	else {
 		std::cout << "Mesh failed to load\n";

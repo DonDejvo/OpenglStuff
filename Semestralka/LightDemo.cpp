@@ -39,9 +39,6 @@ void LightDemo::init()
 	mainCamera.Near = 0.1f;
 	mainCamera.Far = 1000.0f;
 
-	cameraMovement.setCamera(&mainCamera);
-	cameraMovement.enabled = false;
-
 	lightCamera.viewport.width = 64;
 	lightCamera.viewport.height = 64;
 	lightCamera.Near = 0.1f;
@@ -49,16 +46,16 @@ void LightDemo::init()
 	lightCamera.updateProjection();
 
 	skybox.loadFromFiles({
-		"data/skybox/vz_classic_land_right.png",
-		"data/skybox/vz_classic_land_left.png",
-		"data/skybox/vz_classic_land_up.png",
-		"data/skybox/vz_classic_land_down.png",
-		"data/skybox/vz_classic_land_front.png",
-		"data/skybox/vz_classic_land_back.png"
+		"data/skybox/vz_clear_right.png",
+		"data/skybox/vz_clear_left.png",
+		"data/skybox/vz_clear_up.png",
+		"data/skybox/vz_clear_down.png",
+		"data/skybox/vz_clear_front.png",
+		"data/skybox/vz_clear_back.png"
 	});
 
-	fog.Color = glm::vec3(0.9f, 0.9f, 0.9f);
-	fog.Density = 0.005f;
+	fog.Color = glm::vec3(0.9f, 0.9f, 0.95f);
+	fog.Density = 0.006f;
 
 	dirLight.diffuseIntensity = 0.9f;
 	dirLight.ambientIntensity = 0.1f;
@@ -161,22 +158,15 @@ void LightDemo::init()
 	cube.setGeometry(&cubeGeometry);
 	cube.setMaterial(0, &colorMaterial);
 	cube.scale *= 2.0f;
+	//cube.loadFromFile("data/backpack/backpack.obj");
 	cube.position.x = worldSize * 0.5f;
 	cube.position.y = 20.0f;
 	cube.position.z = worldSize * 0.5f;
-
-	shadowMapFBO.width = 1024;
-	shadowMapFBO.height = 1024;
-	shadowMapFBO.init();
 }
 
 void LightDemo::update(float dt)
 {
 	Window* win = Window::get();
-
-	if (Input::get()->isKeyClicked('c')) {
-		cameraMovement.enabled = !cameraMovement.enabled;
-	}
 
 	//backpack.yaw += 1.0f * dt;
 	//cube.yaw += 1.0f * dt;
@@ -189,7 +179,7 @@ void LightDemo::update(float dt)
 
 	float angle = dirLightAngle;// (dirLightAngle < AI_MATH_PI ? dirLightAngle : AI_MATH_TWO_PI - dirLightAngle) + AI_MATH_PI;
 
-	angle = 1.0f;
+	angle = 3.0f;
 
 	dirLight.worldDirection.x = cos(angle) * 1.5f;
 	dirLight.worldDirection.z = sin(angle) * 1.5f;
@@ -205,7 +195,6 @@ void LightDemo::update(float dt)
 	terrain.computeModelMatrix();
 	player.update(dt);
 
-	cameraMovement.update(dt);
 	playerCamera.update(dt);
 
 	mainCamera.onResize(win->getWinWdth(), win->getWinHeight());
@@ -221,7 +210,7 @@ void LightDemo::draw()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	shadowMapFBO.bind();
+	shadowMapTechnique.bindFBO();
 
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -246,7 +235,7 @@ void LightDemo::draw()
 	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
 	terrain.draw((DrawCallbacks*)&shadowMapTechnique);
 
-	shadowMapFBO.unbind();
+	shadowMapTechnique.unbindFBO();
 
 	Window* win = Window::get();
 
@@ -269,7 +258,7 @@ void LightDemo::draw()
 	lightingTechnique.enableFog(true);
 	lightingTechnique.supplyFog(fog);
 
-	shadowMapFBO.getShadowMap().bind(SHADOW_MAP);
+	shadowMapTechnique.bindShadowMap();
 
 
 	for (auto& tree : trees) {
@@ -307,7 +296,7 @@ void LightDemo::draw()
 	terrainTechnique.enableFog(true);
 	terrainTechnique.supplyFog(fog);
 
-	shadowMapFBO.getShadowMap().bind(SHADOW_MAP);
+	shadowMapTechnique.bindShadowMap();
 
 	terrainTechnique.supplyModelMatrix(terrain.getMatrix());
 	PVMMatrix = mainCamera.getPVMatrix() * terrain.getMatrix();

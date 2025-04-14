@@ -14,21 +14,17 @@ void Texture::bind(GLenum texUnit) const
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
 }
 
-void Texture::create(int width, int height, const CreateParams& params)
+void Texture::create(int width, int height, GLenum internalFormat, GLenum type, GLenum minFilter, GLenum magFilter)
 {
-	mImageWidth = width;
-	mImageHeight = height;
+	mInternalFormat = internalFormat;
 
 	glGenTextures(1, &mTextureID);
 	glBindTexture(GL_TEXTURE_2D, mTextureID);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, params.format, width, height, 0, params.format, params.type, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, type, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void Texture::loadFromFile(const std::string& path)

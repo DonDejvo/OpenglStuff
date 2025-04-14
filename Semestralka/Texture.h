@@ -20,17 +20,11 @@ private:
 	std::string mPath;
 	int mImageWidth;
 	int mImageHeight;
+	GLenum mInternalFormat;
 public:
-	struct CreateParams {
-		GLenum format = GL_RGBA;
-		GLenum type = GL_UNSIGNED_BYTE;
-		GLint filter = GL_LINEAR;
-		GLint wrap = GL_CLAMP_TO_EDGE;
-	};
-
 	Texture();
 	void bind(GLenum texUnit) const;
-	void create(int width, int height, const CreateParams& params);
+	void create(int width, int height, GLenum internalFormat, GLenum type, GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
 	void loadFromFile(const std::string& path);
 
 	inline int getWidth() const {
