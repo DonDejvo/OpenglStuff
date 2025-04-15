@@ -11,3 +11,5 @@
 ![Screenshot5](screenshots/screenshot5.png)
 
 ![Screenshot6](screenshots/screenshot6.png)
+
+![Screenshot7](screenshots/screenshot7.png)

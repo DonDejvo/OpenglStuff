@@ -64,7 +64,7 @@ public:
 		updateProjection();
 	}
 
-	void update(float dt) {
+	void update() {
 		updateView();
 
 		mPVMatrix = mProjMatrix * mViewMatrix;

@@ -6,10 +6,11 @@
 #include "Material.h"
 #include "DrawCallbacks.h"
 #include "Geometry.h"
+#include "Drawable.h"
 
 constexpr unsigned int MESH_IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs;
 
-class Mesh {
+class Mesh : public Drawable {
 public:
 	struct Data {
 		Geometry* geometry;
@@ -32,7 +33,7 @@ public:
 	Mesh();
 
 	void loadFromFile(const std::string& path);
-	void draw(DrawCallbacks* drawCallbacks) const;
+	void draw(DrawCallbacks* drawCallbacks) const override;
 
 	inline void setGeometry(Geometry* geom) {
 		mData.geometry = geom;
@@ -40,7 +41,7 @@ public:
 
 	void setMaterial(unsigned int idx, Material* mat);
 
-	inline const glm::mat4& getMatrix() const {
+	inline const glm::mat4& getMatrix() const override {
 		return mMatrix;
 	}
 

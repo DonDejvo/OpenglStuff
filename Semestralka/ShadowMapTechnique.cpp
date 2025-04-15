@@ -29,7 +29,14 @@ void ShadowMapTechnique::unbindFBO() const
 	mShadowMapFBO.unbind();
 }
 
-void ShadowMapTechnique::bindShadowMap() const
+void ShadowMapTechnique::bindShadowMap()
 {
 	mShadowMapFBO.getDepthAttachment().bind(SHADOW_MAP);
+}
+
+void ShadowMapTechnique::draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const
+{
+	glm::mat4 lightPVMMatrix = cameras[0]->getPVMatrix() * drawable.getMatrix();
+	supplyPVMMatrix(lightPVMMatrix);
+	drawable.draw((DrawCallbacks*)this);
 }

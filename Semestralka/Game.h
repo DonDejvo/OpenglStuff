@@ -23,7 +23,6 @@ public:
 	virtual void update(float dt);
 	virtual void draw();
 	virtual void destroy();
-	virtual void onMouseMove(int mouseX, int mouseY);
 
 	inline const GameConfig& getConfig() const {
 		return mConfig;

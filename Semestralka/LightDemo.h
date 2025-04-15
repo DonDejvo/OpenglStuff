@@ -5,7 +5,6 @@
 #include "Geometry.h"
 #include "Mesh.h"
 #include "ShadowMapTechnique.h"
-#include "ScreenTechnique.h"
 #include "SimpleTechnique.h"
 #include "SkyboxTechnique.h"
 #include "SkyBox.h"
@@ -13,6 +12,8 @@
 #include "Terrain.h"
 #include "Player.h"
 #include "PlayerCamera.h"
+#include "WaterTechnique.h"
+#include "WaterTile.h"
 
 class LightDemo : public Game {
 public:
@@ -20,13 +21,16 @@ public:
 
 	PerspectiveCamera mainCamera;
 	OrthoCamera lightCamera;
-	Shader lightShader, shadowShader, screenShader, simpleShader, skyboxShader, terrainShader;
+	OrthoCamera guiCamera;
+	Shader lightShader, shadowShader, simpleShader, skyboxShader, terrainShader, waterShader;
 	LightingTechnique lightingTechnique;
 	ShadowMapTechnique shadowMapTechnique;
 	SkyboxTechnique cubemapTechnique;
-	ScreenTechnique screenTechnique;
 	SimpleTechnique simpleTechnique;
 	TerrainTechnique terrainTechnique;
+	WaterTechnique waterTechnique;
+
+	std::vector<WaterTile> waterTiles;
 
 	SkyBox skybox;
 	Fog fog;
@@ -51,8 +55,12 @@ public:
 	Player player;
 	PlayerCamera playerCamera;
 
+	std::vector<Mesh> guiTextures;
+
 	void init() override;
 	void update(float dt) override;
 	void draw() override;
-	void onMouseMove(int mouseX, int mouseY) override;
+private:
+	void drawScene(const glm::vec4& clipPlane);
+	void drawGui();
 };

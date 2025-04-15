@@ -2,8 +2,9 @@
 #include "Geometry.h"
 #include <iostream>
 #include "DrawCallbacks.h"
+#include "Drawable.h"
 
-class Terrain {
+class Terrain : public Drawable {
 private:
 	PlaneGeometry mPlaneGeometry;
     glm::mat4 mMatrix;
@@ -24,7 +25,7 @@ public:
 
     void computeModelMatrix();
 
-    inline const glm::mat4& getMatrix() const {
+    inline const glm::mat4& getMatrix() const override {
         return mMatrix;
     }
 
@@ -33,7 +34,7 @@ public:
         mPlaneGeometry.heightSegments = height;
     }
 
-    void draw(DrawCallbacks* drawCallbacks) const;
+    void draw(DrawCallbacks* drawCallbacks) const override;
 
     void setMaterial(TerrainMaterial* mat);
 

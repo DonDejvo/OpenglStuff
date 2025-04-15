@@ -24,7 +24,3 @@ void Game::draw()
 void Game::destroy()
 {  
 }
-
-void Game::onMouseMove(int mouseX, int mouseY)
-{
-}

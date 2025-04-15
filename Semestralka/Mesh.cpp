@@ -146,9 +146,11 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 	glBindVertexArray(mData.geometry->getVAO());
 
 	for (unsigned int i = 0; i < mData.geometry->drawCalls.size(); ++i) {
-		Material* material = mData.materials[mData.geometry->drawCalls[i].materialIndex];
+		unsigned int matIdx = mData.geometry->drawCalls[i].materialIndex;
+		Material* material = matIdx < mData.materials.size() ?
+			mData.materials[matIdx] : nullptr;
 
-		if (drawCallbacks) {
+		if (drawCallbacks && material != nullptr) {
 			drawCallbacks->supplyMaterial(*material);
 
 			if (material->diffuseTexture) {

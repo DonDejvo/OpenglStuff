@@ -11,19 +11,16 @@ void LightDemo::init()
 
 	lightShader.loadFromFiles("shaders/lighting.vert", "shaders/lighting.frag");
 	shadowShader.loadFromFiles("shaders/shadow.vert", "shaders/shadow.frag");
-	screenShader.loadFromFiles("shaders/screen.vert", "shaders/screen.frag");
 	simpleShader.loadFromFiles("shaders/simple.vert", "shaders/simple.frag");
 	skyboxShader.loadFromFiles("shaders/skybox.vert", "shaders/skybox.frag");
 	terrainShader.loadFromFiles("shaders/terrain.vert", "shaders/terrain.frag");
+	waterShader.loadFromFiles("shaders/water.vert", "shaders/water.frag");
 
 	lightingTechnique.setShader(&lightShader);
 	lightingTechnique.init();
 
 	shadowMapTechnique.setShader(&shadowShader);
 	shadowMapTechnique.init();
-
-	screenTechnique.setShader(&screenShader);
-	screenTechnique.init();
 
 	simpleTechnique.setShader(&simpleShader);
 	simpleTechnique.init();
@@ -33,6 +30,9 @@ void LightDemo::init()
 
 	terrainTechnique.setShader(&terrainShader);
 	terrainTechnique.init();
+
+	waterTechnique.setShader(&waterShader);
+	waterTechnique.init();
 
 	mainCamera.position = glm::vec3(0.0f, 5.0f, 10.0f);
 	mainCamera.direction = glm::vec3(0.0f, -0.5f, -2.0f);
@@ -131,7 +131,7 @@ void LightDemo::init()
 	playerCamera.setPlayer(&player);
 
 	player.position.x = worldSize * 0.5f;
-	player.position.z = worldSize * 0.5f;
+	player.position.z = worldSize * 0.5f + 50.0f;
 
 	plane.setGeometry(&planeGeometry);
 	plane.setMaterial(0, &terrainMaterial);
@@ -160,8 +160,38 @@ void LightDemo::init()
 	cube.scale *= 2.0f;
 	//cube.loadFromFile("data/backpack/backpack.obj");
 	cube.position.x = worldSize * 0.5f;
-	cube.position.y = 20.0f;
-	cube.position.z = worldSize * 0.5f;
+	cube.position.y = 12.5f;
+	cube.position.z = worldSize * 0.5f + 50.0f;
+
+	WaterTile waterTile;
+	waterTile.width = 100.0f;
+	waterTile.height = 100.0f;
+
+	waterTile.init();
+
+	waterTile.position.x = worldSize * 0.5f + 20.0f;
+	waterTile.position.y = 8.0f;
+	waterTile.position.z = worldSize * 0.5f;
+
+	waterTiles.push_back(waterTile);
+
+	Mesh guiTex1;
+	guiTex1.position.x = -500;
+	guiTex1.position.y = 400;
+	guiTex1.scale.x = 256;
+	guiTex1.scale.y = 256;
+	guiTex1.setGeometry(&quadGeometry);
+
+	guiTextures.push_back(guiTex1);
+
+	Mesh guiTex2;
+	guiTex2.position.x = -200;
+	guiTex2.position.y = 400;
+	guiTex2.scale.x = 256;
+	guiTex2.scale.y = 256;
+	guiTex2.setGeometry(&quadGeometry);
+
+	guiTextures.push_back(guiTex2);
 }
 
 void LightDemo::update(float dt)
@@ -194,19 +224,30 @@ void LightDemo::update(float dt)
 	cube.computeModelMatrix();
 	terrain.computeModelMatrix();
 	player.update(dt);
+	for (auto& tile : waterTiles) {
+		tile.computeModelMatrix();
+	}
 
 	playerCamera.update(dt);
 
 	mainCamera.onResize(win->getWinWdth(), win->getWinHeight());
-	mainCamera.update(dt);
+	mainCamera.update();
 
-	lightCamera.update(dt);
+	lightCamera.update();
+
+	guiCamera.onResize(win->getWinWdth(), win->getWinHeight());
+	guiCamera.update();
+
+	for (auto& guiTex : guiTextures) {
+		guiTex.computeModelMatrix();
+	}
 }
 
 void LightDemo::draw()
 {
 	glm::mat4 PVMMatrix, lightPVMMatrix;
 
+	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -218,30 +259,76 @@ void LightDemo::draw()
 	shadowMapTechnique.use();
 
 	for (auto& tree : trees) {
-		lightPVMMatrix = lightCamera.getPVMatrix() * tree.getMatrix();
-		shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-		tree.draw((DrawCallbacks*)&shadowMapTechnique);
+		shadowMapTechnique.draw(tree, { &lightCamera });
 	}
-
-	lightPVMMatrix = lightCamera.getPVMatrix() * cube.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-	cube.draw((DrawCallbacks*)&shadowMapTechnique);
-
-	lightPVMMatrix = lightCamera.getPVMatrix() * player.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-	player.draw((DrawCallbacks*)&shadowMapTechnique);
-
-	lightPVMMatrix = lightCamera.getPVMatrix() * terrain.getMatrix();
-	shadowMapTechnique.supplyPVMMatrix(lightPVMMatrix);
-	terrain.draw((DrawCallbacks*)&shadowMapTechnique);
+	shadowMapTechnique.draw(cube, { &lightCamera });
+	shadowMapTechnique.draw(player, { &lightCamera });
+	shadowMapTechnique.draw(terrain, { &lightCamera });
 
 	shadowMapTechnique.unbindFBO();
 
+	glm::vec3 cameraOldPos = mainCamera.position;
+	glm::vec3 cameraOldDir = mainCamera.direction;
+
+	mainCamera.position.y -= (mainCamera.position.y - waterTiles[0].position.y) * 2;
+	mainCamera.direction.y *= -1;
+	mainCamera.update();
+
+	auto& reflectionFramebuffer = waterTechnique.getReflectionFramebuffer();
+	glViewport(0, 0, reflectionFramebuffer.width, reflectionFramebuffer.height);
+	reflectionFramebuffer.bind();
+
+	drawScene(glm::vec4(0, 1, 0, -8));
+
+	reflectionFramebuffer.unbind();
+
+	mainCamera.position = cameraOldPos;
+	mainCamera.direction = cameraOldDir;
+	mainCamera.update();
+
+	auto& refractionFramebuffer = waterTechnique.getRefractionFramebuffer();
+	glViewport(0, 0, refractionFramebuffer.width, refractionFramebuffer.height);
+	refractionFramebuffer.bind();
+
+	drawScene(glm::vec4(0, -1, 0, 8));
+
+	refractionFramebuffer.unbind();
+
 	Window* win = Window::get();
 
-	glEnable(GL_DEPTH_TEST);
-
 	glViewport(0, 0, win->getWinWdth(), win->getWinHeight());
+
+	drawScene(glm::vec4(0, -1, 0, 1000));
+
+	/*lightingTechnique.supplyModelMatrix(plane.getMatrix());
+	PVMMatrix = mainCamera.getPVMatrix() * plane.getMatrix();
+	lightingTechnique.supplyPVMMatrix(PVMMatrix);
+	lightPVMMatrix = lightCamera.getPVMatrix() * plane.getMatrix();
+	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
+	plane.draw((DrawCallbacks*)&lightingTechnique);*/
+
+	glCullFace(GL_BACK);
+
+	waterTechnique.use();
+
+	waterTechnique.bindTextureUnits();
+
+	reflectionFramebuffer.getAttachment(0).bind(REFLECTION);
+	refractionFramebuffer.getAttachment(0).bind(REFRACTION);
+
+	for (auto& tile : waterTiles) {
+		PVMMatrix = mainCamera.getPVMatrix() * tile.getMatrix();
+		waterTechnique.supplyPVMMatrix(PVMMatrix);
+		tile.draw();
+	}
+
+	drawGui();
+}
+
+void LightDemo::drawScene(const glm::vec4& clipPlane)
+{
+	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -258,31 +345,15 @@ void LightDemo::draw()
 	lightingTechnique.enableFog(true);
 	lightingTechnique.supplyFog(fog);
 
+	lightingTechnique.supplyClipPlane(clipPlane);
+
 	shadowMapTechnique.bindShadowMap();
 
-
 	for (auto& tree : trees) {
-		lightingTechnique.supplyModelMatrix(tree.getMatrix());
-		PVMMatrix = mainCamera.getPVMatrix() * tree.getMatrix();
-		lightingTechnique.supplyPVMMatrix(PVMMatrix);
-		lightPVMMatrix = lightCamera.getPVMatrix() * tree.getMatrix();
-		lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-		tree.draw((DrawCallbacks*)&lightingTechnique);
+		lightingTechnique.draw(tree, { &mainCamera, &lightCamera });
 	}
-
-	lightingTechnique.supplyModelMatrix(cube.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * cube.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * cube.getMatrix();
-	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	cube.draw((DrawCallbacks*)&lightingTechnique);
-
-	lightingTechnique.supplyModelMatrix(player.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * player.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * player.getMatrix();
-	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	player.draw((DrawCallbacks*)&lightingTechnique);
+	lightingTechnique.draw(cube, { &mainCamera, &lightCamera });
+	lightingTechnique.draw(player, { &mainCamera, &lightCamera });
 
 	terrainTechnique.use();
 
@@ -296,21 +367,11 @@ void LightDemo::draw()
 	terrainTechnique.enableFog(true);
 	terrainTechnique.supplyFog(fog);
 
+	terrainTechnique.supplyClipPlane(clipPlane);
+
 	shadowMapTechnique.bindShadowMap();
 
-	terrainTechnique.supplyModelMatrix(terrain.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * terrain.getMatrix();
-	terrainTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * terrain.getMatrix();
-	terrainTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	terrain.draw((DrawCallbacks*)&terrainTechnique);
-
-	/*lightingTechnique.supplyModelMatrix(plane.getMatrix());
-	PVMMatrix = mainCamera.getPVMatrix() * plane.getMatrix();
-	lightingTechnique.supplyPVMMatrix(PVMMatrix);
-	lightPVMMatrix = lightCamera.getPVMatrix() * plane.getMatrix();
-	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
-	plane.draw((DrawCallbacks*)&lightingTechnique);*/
+	terrainTechnique.draw(terrain, { &mainCamera, &lightCamera });
 
 	glCullFace(GL_FRONT);
 
@@ -320,7 +381,28 @@ void LightDemo::draw()
 	cubemapTechnique.draw();
 }
 
-void LightDemo::onMouseMove(int mouseX, int mouseY)
+void LightDemo::drawGui()
 {
-	
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	simpleTechnique.use();
+
+	unsigned int i = 0;
+
+	for (auto& guiTex : guiTextures) {
+		if (i == 0) {
+			auto& reflectionFramebuffer = waterTechnique.getReflectionFramebuffer();
+			reflectionFramebuffer.getAttachment(0).bind(DIFFUSE);
+		}
+		else if (i == 1) {
+			auto& refractionFramebuffer = waterTechnique.getRefractionFramebuffer();
+			refractionFramebuffer.getAttachment(0).bind(DIFFUSE);
+		}
+
+		glm::mat4 PVMMatrix = guiCamera.getPVMatrix() * guiTex.getMatrix();
+		simpleTechnique.supplyPVMMatrix(PVMMatrix);
+		guiTex.draw(nullptr);
+		++i;
+	}
 }

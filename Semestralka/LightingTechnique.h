@@ -11,11 +11,8 @@ constexpr unsigned int MAX_SPOT_LIGHTS = 2;
 
 class LightingTechnique : public FogTechnique {
 protected:
-	GLuint PVMLocation;
 	GLuint modelLocation;
 	GLuint lightPVMLocation;
-
-	std::map<unsigned int, GLuint> mTextureLoc;
 
 	GLuint mNumPointLightsLoc;
 	GLuint mNumSpotLightsLoc;
@@ -63,18 +60,20 @@ protected:
 		GLuint diffuseIntensity;
 		GLuint direction;
 	} mDirLightLoc;
+
+	GLuint mClipPlaneLoc;
 public:
 	void init() override;
 	void supplyMaterial(const Material& material) const override;
 	void supplyDirLight(const DirectionalLight& dirLight) const;
 	void supplyPointLights(const std::vector<PointLight>& pointLights) const;
 	void supplySpotLights(const std::vector<SpotLight>& spotLights) const;
-	void supplyPVMMatrix(const glm::mat4& PVMMatrix) const;
 	void supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const;
 	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
-	void bindTextureUnits() const;
 	void enableSpecularTexture(bool value) const override;
 	void enableDiffuseTexture(bool value) const override;
 	void enableNormalMap(bool value) const override;
 	void supplyCameraPosition(const glm::vec3& pos) const;
+	void supplyClipPlane(const glm::vec4& plane) const;
+	void draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const override;
 };

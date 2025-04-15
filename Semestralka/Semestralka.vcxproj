@@ -152,8 +152,6 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="Lights.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="ScreenTechnique.cpp" />
-    <ClCompile Include="Semestralka.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderTechnique.cpp" />
     <ClCompile Include="ShadowMapTechnique.cpp" />
@@ -162,6 +160,8 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainTechnique.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="WaterTechnique.cpp" />
+    <ClCompile Include="WaterTile.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +171,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="FogTechnique.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCamera.h" />
+    <ClInclude Include="Drawable.h" />
     <ClInclude Include="SkyboxTechnique.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="SkyBox.h" />
@@ -183,7 +184,6 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="Material.h" />
     <ClInclude Include="mathUtils.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="ScreenTechnique.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderTechnique.h" />
     <ClInclude Include="ShadowMapTechnique.h" />
@@ -191,6 +191,8 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainTechnique.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="WaterTechnique.h" />
+    <ClInclude Include="WaterTile.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

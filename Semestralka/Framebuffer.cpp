@@ -40,12 +40,24 @@ void Framebuffer::createDepthAttachment(GLenum internalFormat, GLenum minFilter,
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-const Texture& Framebuffer::getAttachment(unsigned int idx) const
+void Framebuffer::createDepthBuffer()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+
+	glGenRenderbuffers(1, &mRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, mRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mRBO);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+Texture& Framebuffer::getAttachment(unsigned int idx)
 {
 	return mColorAttachments[idx];
 }
 
-const Texture& Framebuffer::getDepthAttachment() const
+Texture& Framebuffer::getDepthAttachment()
 {
 	return mDepthAttachment;
 }

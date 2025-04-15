@@ -12,5 +12,6 @@ public:
 	void supplyPVMMatrix(const glm::mat4& matrix) const;
 	void bindFBO() const;
 	void unbindFBO() const;
-	void bindShadowMap() const;
+	void bindShadowMap();
+	void draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const override;
 };

@@ -53,6 +53,8 @@ void LightingTechnique::init()
 		mSpotLightsLoc[i].direction = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].Direction").c_str());
 		mSpotLightsLoc[i].cutOff  = glGetUniformLocation(mShader->getProgramID(), ("u_SpotLights[" + std::to_string(i) + "].CutOff").c_str());
 	}
+
+	mClipPlaneLoc = glGetUniformLocation(mShader->getProgramID(), "u_ClipPlane");
 }
 
 void LightingTechnique::supplyMaterial(const Material& material) const
@@ -105,11 +107,6 @@ void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLight
 	}
 }
 
-void LightingTechnique::supplyPVMMatrix(const glm::mat4& PVMMatrix) const
-{
-	glUniformMatrix4fv(PVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
-}
-
 void LightingTechnique::supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const
 {
 	glUniformMatrix4fv(lightPVMLocation, 1, GL_FALSE, &PVMMatrix[0][0]);
@@ -118,15 +115,6 @@ void LightingTechnique::supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const
 void LightingTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const
 {
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-}
-
-void LightingTechnique::bindTextureUnits() const
-{
-	for (auto it = mTextureLoc.begin(); it != mTextureLoc.end(); ++it) {
-		const auto& entry = *it;
-		glActiveTexture(GL_TEXTURE0 + entry.first);
-		glUniform1i(entry.second, entry.first);
-	}
 }
 
 void LightingTechnique::enableSpecularTexture(bool value) const
@@ -147,4 +135,19 @@ void LightingTechnique::enableNormalMap(bool value) const
 void LightingTechnique::supplyCameraPosition(const glm::vec3& pos) const
 {
 	glUniform3fv(mCameraPosLoc, 1, &pos[0]);
+}
+
+void LightingTechnique::supplyClipPlane(const glm::vec4& plane) const
+{
+	glUniform4fv(mClipPlaneLoc, 1, &plane[0]);
+}
+
+void LightingTechnique::draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const
+{
+	supplyModelMatrix(drawable.getMatrix());
+	glm::mat4 PVMMatrix = cameras[0]->getPVMatrix() * drawable.getMatrix();
+	supplyPVMMatrix(PVMMatrix);
+	glm::mat4 lightPVMMatrix = cameras[1]->getPVMatrix() * drawable.getMatrix();
+	supplyLightPVMMatrix(lightPVMMatrix);
+	drawable.draw((DrawCallbacks*)this);
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ShaderTechnique.h"
+#include "SimpleTechnique.h"
 
 struct Fog {
 	float Density;
@@ -10,7 +10,7 @@ struct Fog {
 	Fog();
 };
 
-class FogTechnique : public ShaderTechnique {
+class FogTechnique : public SimpleTechnique {
 protected:
 	GLuint mFogEnabledLoc;
 	struct {
