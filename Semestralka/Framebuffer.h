@@ -17,6 +17,6 @@ public:
 	void createAttachment(GLenum internalFormat, GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
 	void createDepthAttachment(GLenum internalFormat, GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
 	void createDepthBuffer();
-	Texture& getAttachment(unsigned int idx);
-	Texture& getDepthAttachment();
+	const Texture& getAttachment(unsigned int idx) const;
+	const Texture& getDepthAttachment() const;
 };

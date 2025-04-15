@@ -45,6 +45,7 @@ public:
 	CubeGeometry cubeGeometry, skyboxGeometry;
 	TerrainMaterial terrainMaterial;
 	Material colorMaterial;
+	WaterMaterrial waterMatrial;
 
 	float worldSize;
 

@@ -52,12 +52,12 @@ void Framebuffer::createDepthBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Texture& Framebuffer::getAttachment(unsigned int idx)
+const Texture& Framebuffer::getAttachment(unsigned int idx) const
 {
 	return mColorAttachments[idx];
 }
 
-Texture& Framebuffer::getDepthAttachment()
+const Texture& Framebuffer::getDepthAttachment() const
 {
 	return mDepthAttachment;
 }

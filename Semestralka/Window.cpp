@@ -118,12 +118,12 @@ Window::Window(Game* game, int winWidth, int winHeight):
 
 void Window::update()
 {
-    float currentTime = 0.001f * (float)glutGet(GLUT_ELAPSED_TIME);
+    mElapsedTime = (float)glutGet(GLUT_ELAPSED_TIME) * 0.001f;
     if (mPrevTime == 0.0f) {
-        mPrevTime = currentTime;
+        mPrevTime = mElapsedTime;
     }
-    float dt = currentTime - mPrevTime;
-    mPrevTime = currentTime;
+    float dt = mElapsedTime - mPrevTime;
+    mPrevTime = mElapsedTime;
 
     mGame->update(dt);
 

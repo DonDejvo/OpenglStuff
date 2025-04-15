@@ -15,6 +15,7 @@ constexpr GLenum NORMAL_MAP_GREEN = GL_TEXTURE9;
 constexpr GLenum NORMAL_MAP_BLUE = GL_TEXTURE10;
 constexpr GLenum REFLECTION = GL_TEXTURE0;
 constexpr GLenum REFRACTION = GL_TEXTURE1;
+constexpr GLenum DISTORTION_MAP = GL_TEXTURE2;
 
 class Texture {
 private:

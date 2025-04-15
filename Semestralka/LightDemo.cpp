@@ -16,6 +16,15 @@ void LightDemo::init()
 	terrainShader.loadFromFiles("shaders/terrain.vert", "shaders/terrain.frag");
 	waterShader.loadFromFiles("shaders/water.vert", "shaders/water.frag");
 
+	skybox.loadFromFiles({
+		"data/skybox/vz_clear_right.png",
+		"data/skybox/vz_clear_left.png",
+		"data/skybox/vz_clear_up.png",
+		"data/skybox/vz_clear_down.png",
+		"data/skybox/vz_clear_front.png",
+		"data/skybox/vz_clear_back.png"
+	});
+
 	lightingTechnique.setShader(&lightShader);
 	lightingTechnique.init();
 
@@ -44,15 +53,6 @@ void LightDemo::init()
 	lightCamera.Near = 0.1f;
 	lightCamera.Far = 100.0f;
 	lightCamera.updateProjection();
-
-	skybox.loadFromFiles({
-		"data/skybox/vz_clear_right.png",
-		"data/skybox/vz_clear_left.png",
-		"data/skybox/vz_clear_up.png",
-		"data/skybox/vz_clear_down.png",
-		"data/skybox/vz_clear_front.png",
-		"data/skybox/vz_clear_back.png"
-	});
 
 	fog.Color = glm::vec3(0.9f, 0.9f, 0.95f);
 	fog.Density = 0.006f;
@@ -158,7 +158,6 @@ void LightDemo::init()
 	cube.setGeometry(&cubeGeometry);
 	cube.setMaterial(0, &colorMaterial);
 	cube.scale *= 2.0f;
-	//cube.loadFromFile("data/backpack/backpack.obj");
 	cube.position.x = worldSize * 0.5f;
 	cube.position.y = 12.5f;
 	cube.position.z = worldSize * 0.5f + 50.0f;
@@ -172,6 +171,11 @@ void LightDemo::init()
 	waterTile.position.x = worldSize * 0.5f + 20.0f;
 	waterTile.position.y = 8.0f;
 	waterTile.position.z = worldSize * 0.5f;
+
+	waterMatrial.distortionIntensity = 0.004f;
+	waterMatrial.distortionTexture = AssetManager::get()->getTexture("data/water/waterdudv.jpg");
+
+	waterTile.setMaterial(&waterMatrial);
 
 	waterTiles.push_back(waterTile);
 
@@ -267,33 +271,6 @@ void LightDemo::draw()
 
 	shadowMapTechnique.unbindFBO();
 
-	glm::vec3 cameraOldPos = mainCamera.position;
-	glm::vec3 cameraOldDir = mainCamera.direction;
-
-	mainCamera.position.y -= (mainCamera.position.y - waterTiles[0].position.y) * 2;
-	mainCamera.direction.y *= -1;
-	mainCamera.update();
-
-	auto& reflectionFramebuffer = waterTechnique.getReflectionFramebuffer();
-	glViewport(0, 0, reflectionFramebuffer.width, reflectionFramebuffer.height);
-	reflectionFramebuffer.bind();
-
-	drawScene(glm::vec4(0, 1, 0, -8));
-
-	reflectionFramebuffer.unbind();
-
-	mainCamera.position = cameraOldPos;
-	mainCamera.direction = cameraOldDir;
-	mainCamera.update();
-
-	auto& refractionFramebuffer = waterTechnique.getRefractionFramebuffer();
-	glViewport(0, 0, refractionFramebuffer.width, refractionFramebuffer.height);
-	refractionFramebuffer.bind();
-
-	drawScene(glm::vec4(0, -1, 0, 8));
-
-	refractionFramebuffer.unbind();
-
 	Window* win = Window::get();
 
 	glViewport(0, 0, win->getWinWdth(), win->getWinHeight());
@@ -307,19 +284,30 @@ void LightDemo::draw()
 	lightingTechnique.supplyLightPVMMatrix(lightPVMMatrix);
 	plane.draw((DrawCallbacks*)&lightingTechnique);*/
 
-	glCullFace(GL_BACK);
-
-	waterTechnique.use();
-
-	waterTechnique.bindTextureUnits();
-
-	reflectionFramebuffer.getAttachment(0).bind(REFLECTION);
-	refractionFramebuffer.getAttachment(0).bind(REFRACTION);
-
 	for (auto& tile : waterTiles) {
-		PVMMatrix = mainCamera.getPVMatrix() * tile.getMatrix();
-		waterTechnique.supplyPVMMatrix(PVMMatrix);
-		tile.draw();
+		waterTechnique.bindReflectionFBO(tile, mainCamera);
+
+		drawScene(glm::vec4(0, 1, 0, -8));
+
+		waterTechnique.unbindReflectionFBO(tile, mainCamera);
+
+		waterTechnique.bindRefractionFBO(tile, mainCamera);
+
+		drawScene(glm::vec4(0, -1, 0, 8));
+
+		waterTechnique.unbindRefractionFBO(tile, mainCamera);
+
+		glViewport(0, 0, win->getWinWdth(), win->getWinHeight());
+
+		waterTechnique.use();
+		waterTechnique.bindTextureUnits();
+		waterTechnique.supplyTime(Window::get()->getElapsedTime());
+
+		waterTechnique.supplyCameraPosition(mainCamera.position);
+		waterTechnique.enableFog(true);
+		waterTechnique.supplyFog(fog);
+
+		waterTechnique.draw(tile, { &mainCamera });
 	}
 
 	drawGui();
@@ -379,6 +367,8 @@ void LightDemo::drawScene(const glm::vec4& clipPlane)
 	skybox.bind(DIFFUSE);
 	cubemapTechnique.supplyPVMatrix(mainCamera.getProjMatrix() * glm::mat4(glm::mat3(mainCamera.getViewMatrix())));
 	cubemapTechnique.draw();
+
+	glCullFace(GL_BACK);
 }
 
 void LightDemo::drawGui()

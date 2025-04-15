@@ -36,3 +36,9 @@ public:
 	Texture* normalMapGreen;
 	Texture* normalMapBlue;
 };
+
+class WaterMaterrial : public Material {
+public:
+	Texture* distortionTexture = nullptr;
+	float distortionIntensity = 0.0f;
+};

@@ -27,6 +27,7 @@ private:
 	Game* mGame;
 
 	float mPrevTime;
+	float mElapsedTime;
 
 	Window(Game* game, int winWidth, int winHeight);
 
@@ -40,5 +41,8 @@ public:
 	}
 	inline int getWinHeight() const {
 		return mWinHeight;
+	}
+	inline float getElapsedTime() const {
+		return mElapsedTime;
 	}
 };
