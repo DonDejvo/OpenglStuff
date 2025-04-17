@@ -8,6 +8,7 @@ struct Material {
     vec3 DiffuseColor;
     vec3 SpecularColor;
     float Shininess;
+    float Alpha;
 };
 
 struct BaseLight {
@@ -185,19 +186,24 @@ vec4 CalcPhongLighting() {
     }
 
     vec4 finalColor = totalLighting;
+
     if(u_DiffuseTextureEnabled) {
         vec4 texColor = texture(u_TextureDiffuse, v_TexCoord);
-        if(texColor.a < 0.5) {
-            discard;
-        }
         finalColor *= texColor;
     }
+
+    finalColor.a *= u_Material.Alpha;
 
     return finalColor;
 }
 
 void main() {
     FragColor = CalcPhongLighting();
+
+    if(FragColor.a < 0.01) {
+        discard;
+    }
+
     if(u_FogEnabled) {
         float fogFactor = CalcFogFactor();
         FragColor = mix(vec4(u_Fog.Color, 1.0), FragColor, fogFactor);

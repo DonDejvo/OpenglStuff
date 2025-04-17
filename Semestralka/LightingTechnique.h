@@ -52,6 +52,7 @@ protected:
 		GLuint diffuseColor;
 		GLuint specularColor;
 		GLuint shininess;
+		GLuint alpha;
 	} mMaterialLoc;
 
 	struct {

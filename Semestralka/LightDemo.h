@@ -14,6 +14,8 @@
 #include "PlayerCamera.h"
 #include "WaterTechnique.h"
 #include "WaterTile.h"
+#include "SpriteBatch.h"
+#include "Grass.h"
 
 class LightDemo : public Game {
 public:
@@ -56,12 +58,17 @@ public:
 	Player player;
 	PlayerCamera playerCamera;
 
+	SpriteBatch batch, grassBatch;
+	Material grassMaterial;
+	std::vector<Grass> grassTiles;
+
 	std::vector<Mesh> guiTextures;
 
 	void init() override;
 	void update(float dt) override;
 	void draw() override;
 private:
-	void drawScene(const glm::vec4& clipPlane);
+	void drawScene(const glm::vec4& clipPlane, bool tansparent);
+	void drawTransparent(const glm::vec4& clipPlane);
 	void drawGui();
 };

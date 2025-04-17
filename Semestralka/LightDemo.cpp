@@ -55,7 +55,7 @@ void LightDemo::init()
 	lightCamera.updateProjection();
 
 	fog.Color = glm::vec3(0.9f, 0.9f, 0.95f);
-	fog.Density = 0.006f;
+	fog.Density = 0.0f;
 
 	dirLight.diffuseIntensity = 0.9f;
 	dirLight.ambientIntensity = 0.1f;
@@ -111,6 +111,7 @@ void LightDemo::init()
 
 	colorMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	colorMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	colorMaterial.alpha = 0.25f;
 
 	terrainMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	terrainMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -145,9 +146,27 @@ void LightDemo::init()
 	terrain.loadFromHeightMap("data/heightmaps/single_hill.png", heightmapConfig);
 	terrain.setMaterial(&terrainMaterial);
 
-	for (unsigned int i = 0; i < 100; ++i) {
+	for (unsigned int i = 0; i < 250; ++i) {
 		Mesh tree;
-		tree.loadFromFile("data/trees/tree.obj");
+
+		unsigned int type = rand() % 3;
+		float scale = rand() % 100 / 100.0f;
+
+		switch (type) {
+		case 0:
+			tree.loadFromFile("data/trees/laubbaum.obj");
+			tree.scale *= scale + 2.0f;
+			break;
+		case 1:
+			tree.loadFromFile("data/fern/fern1.obj");
+			tree.scale *= scale * 0.5f + 1.0f;
+			break;
+		case 2:
+			tree.loadFromFile("data/rock/roca.obj");
+			tree.scale *= scale + 0.5f;
+			break;
+		}
+
 		tree.position.x = rand() % 100 / 100.0f * worldSize;
 		tree.position.z = rand() % 100 / 100.0f * worldSize;
 		tree.position.y = terrain.getHeightAtPosition(tree.position);
@@ -157,6 +176,7 @@ void LightDemo::init()
 
 	cube.setGeometry(&cubeGeometry);
 	cube.setMaterial(0, &colorMaterial);
+	//cube.loadFromFile("data/dragon/jadedragon.obj");
 	cube.scale *= 2.0f;
 	cube.position.x = worldSize * 0.5f;
 	cube.position.y = 12.5f;
@@ -178,6 +198,53 @@ void LightDemo::init()
 	waterTile.setMaterial(&waterMatrial);
 
 	waterTiles.push_back(waterTile);
+
+	batch.init();
+
+	Sprite sprite1;
+	sprite1.position.x = worldSize * 0.5f;
+	sprite1.position.y = 20.0f;
+	sprite1.position.z = worldSize * 0.5f + 60.0f;
+	sprite1.scale *= 4;
+	sprite1.material = &colorMaterial;
+	batch.add(sprite1);
+
+	Sprite sprite2;
+	sprite2.position.x = worldSize * 0.5f;
+	sprite2.position.y = 20.0f;
+	sprite2.position.z = worldSize * 0.5f + 70.0f;
+	sprite2.position.z += 4;
+	sprite2.scale *= 4;
+	sprite2.material = &colorMaterial;
+	batch.add(sprite2);
+
+	grassMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	grassMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	grassMaterial.diffuseTexture = AssetManager::get()->getTexture("data/grass/n_grass_atlas.png");
+
+	grassBatch.init();
+
+	for (unsigned int i = 0; i < 5000; ++i) {
+		Grass grass;
+
+		grass.material = &grassMaterial;
+		grass.size = rand() % 100 / 50.0f + 0.5f;
+		grass.position.x = rand() % 100 / 100.0f * worldSize;
+		grass.position.z = rand() % 100 / 100.0f * worldSize;
+		grass.position.y = terrain.getHeightAtPosition(grass.position) + grass.size * 0.5f;
+
+		int tileId = rand() % 64;
+		grass.regionX = 1.0f / 8 * (float)(tileId % 8);
+		grass.regionY = 1.0f / 8 * (float)(tileId / 8);
+		grass.regionWidth = 1.0f / 8;
+		grass.regionHeight = 1.0f / 8;
+
+		grass.place(grassBatch);
+
+		grassTiles.push_back(grass);
+	}
+
+	grassBatch.prepare();
 
 	Mesh guiTex1;
 	guiTex1.position.x = -500;
@@ -249,7 +316,8 @@ void LightDemo::update(float dt)
 
 void LightDemo::draw()
 {
-	glm::mat4 PVMMatrix, lightPVMMatrix;
+	/*batch.sort(&mainCamera);
+	batch.prepare();*/
 
 	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_CULL_FACE);
@@ -265,7 +333,7 @@ void LightDemo::draw()
 	for (auto& tree : trees) {
 		shadowMapTechnique.draw(tree, { &lightCamera });
 	}
-	shadowMapTechnique.draw(cube, { &lightCamera });
+	//shadowMapTechnique.draw(cube, { &lightCamera });
 	shadowMapTechnique.draw(player, { &lightCamera });
 	shadowMapTechnique.draw(terrain, { &lightCamera });
 
@@ -275,7 +343,7 @@ void LightDemo::draw()
 
 	glViewport(0, 0, win->getWinWdth(), win->getWinHeight());
 
-	drawScene(glm::vec4(0, -1, 0, 1000));
+	drawScene(glm::vec4(0, -1, 0, 1000), false);
 
 	/*lightingTechnique.supplyModelMatrix(plane.getMatrix());
 	PVMMatrix = mainCamera.getPVMatrix() * plane.getMatrix();
@@ -287,13 +355,13 @@ void LightDemo::draw()
 	for (auto& tile : waterTiles) {
 		waterTechnique.bindReflectionFBO(tile, mainCamera);
 
-		drawScene(glm::vec4(0, 1, 0, -8));
+		drawScene(glm::vec4(0, 1, 0, -8), true);
 
 		waterTechnique.unbindReflectionFBO(tile, mainCamera);
 
 		waterTechnique.bindRefractionFBO(tile, mainCamera);
 
-		drawScene(glm::vec4(0, -1, 0, 8));
+		drawScene(glm::vec4(0, -1, 0, 8), true);
 
 		waterTechnique.unbindRefractionFBO(tile, mainCamera);
 
@@ -310,10 +378,12 @@ void LightDemo::draw()
 		waterTechnique.draw(tile, { &mainCamera });
 	}
 
-	drawGui();
+	drawTransparent(glm::vec4(0, -1, 0, 1000));
+
+	//drawGui();
 }
 
-void LightDemo::drawScene(const glm::vec4& clipPlane)
+void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
 {
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
@@ -337,11 +407,20 @@ void LightDemo::drawScene(const glm::vec4& clipPlane)
 
 	shadowMapTechnique.bindShadowMap();
 
+	glDisable(GL_CULL_FACE);
 	for (auto& tree : trees) {
 		lightingTechnique.draw(tree, { &mainCamera, &lightCamera });
 	}
-	lightingTechnique.draw(cube, { &mainCamera, &lightCamera });
+	glEnable(GL_CULL_FACE);
+
+	//lightingTechnique.draw(cube, { &mainCamera, &lightCamera });
 	lightingTechnique.draw(player, { &mainCamera, &lightCamera });
+
+	glDisable(GL_CULL_FACE);
+
+	lightingTechnique.draw(grassBatch, { &mainCamera, &lightCamera });
+
+	glEnable(GL_CULL_FACE);
 
 	terrainTechnique.use();
 
@@ -369,6 +448,38 @@ void LightDemo::drawScene(const glm::vec4& clipPlane)
 	cubemapTechnique.draw();
 
 	glCullFace(GL_BACK);
+
+	if (transparent) {
+		drawTransparent(clipPlane);
+	}
+}
+
+void LightDemo::drawTransparent(const glm::vec4& clipPlane)
+{
+	/*glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
+
+	lightingTechnique.use();
+
+	lightingTechnique.bindTextureUnits();
+
+	lightingTechnique.supplyCameraPosition(mainCamera.position);
+	lightingTechnique.supplyDirLight(dirLight);
+	lightingTechnique.supplyPointLights(pointLights);
+	lightingTechnique.supplySpotLights(spotLights);
+
+	lightingTechnique.enableFog(true);
+	lightingTechnique.supplyFog(fog);
+
+	lightingTechnique.supplyClipPlane(clipPlane);
+
+	shadowMapTechnique.bindShadowMap();
+
+	lightingTechnique.draw(batch, { &mainCamera, &lightCamera });
+
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);*/
 }
 
 void LightDemo::drawGui()

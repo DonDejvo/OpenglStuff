@@ -29,7 +29,7 @@ void Texture::create(int width, int height, GLenum internalFormat, GLenum type, 
 
 void Texture::loadFromFile(const std::string& path)
 {
-	mTextureID = pgr::createTexture(path);
+	mTextureID = pgr::createTexture(path, true);
 
 	mPath = path;
 
@@ -37,6 +37,9 @@ void Texture::loadFromFile(const std::string& path)
 
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &mImageWidth);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &mImageHeight);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Trilinear filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);               // Magnification doesn't use mipmapping
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

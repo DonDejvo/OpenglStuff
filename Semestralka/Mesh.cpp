@@ -12,6 +12,7 @@ Mesh::Mesh() {
 void Mesh::initFromScene(Data& data, const aiScene* scene, const std::string& path)
 {
 	data.geometry = new Geometry();
+	data.geometry->init();
 
 	data.geometry->drawCalls.resize(scene->mNumMeshes);
 	data.materials.resize(scene->mNumMaterials);

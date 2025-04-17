@@ -3,16 +3,12 @@
 
 void Geometry::init()
 {
-}
-
-void Geometry::initBuffers() {
 	glGenVertexArrays(1, &mVAO);
 	glBindVertexArray(mVAO);
 
 	glGenBuffers(NUM_BUFFERS, mBuffers);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mBuffers[BufferType::VERTEX]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
@@ -30,9 +26,17 @@ void Geometry::initBuffers() {
 	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[BufferType::INDEX]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
+}
+
+void Geometry::initBuffers() {
+
+	glBindBuffer(GL_ARRAY_BUFFER, mBuffers[BufferType::VERTEX]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffers[BufferType::INDEX]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 }
 
 void Geometry::draw(unsigned int idx) const
@@ -93,6 +97,8 @@ void Geometry::computeTriangleTangent(Vertex& v1, Vertex& v2, Vertex& v3)
 }
 
 void QuadGeometry::init() {
+	Geometry::init();
+
 	float halfScaleX = scale.x * 0.5f;
 	float halfScaleY = scale.y * 0.5f;
 
@@ -110,6 +116,8 @@ void QuadGeometry::init() {
 
 void PlaneGeometry::init()
 {
+	Geometry::init();
+
 	float halfScaleX = scale.x * 0.5f;
 	float halfScaleZ = scale.z * 0.5f;
 	
@@ -144,11 +152,12 @@ void PlaneGeometry::init()
 		}
 	}
 
-	drawCalls = { { 0, 0, 6 * widthSegments * heightSegments, 0 } };
+	drawCalls = { { 0, 0, (unsigned int)(6 * widthSegments * heightSegments), 0 } };
 }
 
 void PlaneGeometry::recalculateNormals()
 {
+
 	for (int i = 0; i <= heightSegments; ++i) {
 		for (int j = 0; j <= widthSegments; ++j) {
 			float heightL = getHeight(j - 1, i);
@@ -173,6 +182,8 @@ float PlaneGeometry::getHeight(int x, int y) const
 
 void CubeGeometry::init()
 {
+	Geometry::init();
+
 	float halfScaleX = scale.x * 0.5f;
 	float halfScaleY = scale.y * 0.5f;
 	float halfScaleZ = scale.z * 0.5f;

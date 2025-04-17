@@ -12,6 +12,7 @@ public:
 	glm::vec3 specularColor;
 
 	float shininess;
+	float alpha;
 
 	Material() {
 		diffuseTexture = nullptr;
@@ -23,6 +24,7 @@ public:
 		specularColor = glm::vec3(0.0f);
 
 		shininess = 0.5f;
+		alpha = 1.0f;
 	}
 };
 

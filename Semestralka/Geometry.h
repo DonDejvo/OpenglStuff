@@ -27,10 +27,10 @@ public:
 	std::vector<unsigned int> indices;
 
 	struct DrawCall {
-		int baseVertex;
-		int baseIndex;
-		int numIndices;
-		int materialIndex;
+		unsigned int baseVertex;
+		unsigned int baseIndex;
+		unsigned int numIndices;
+		unsigned int materialIndex;
 	};
 
 	std::vector<DrawCall> drawCalls;

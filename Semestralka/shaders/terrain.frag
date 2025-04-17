@@ -207,9 +207,7 @@ vec4 CalcPhongLighting() {
             blendMapColor.r * texture(u_TextureDiffuseRed, tiledCoord) +
             blendMapColor.g * texture(u_TextureDiffuseGreen, tiledCoord) +
             blendMapColor.b * texture(u_TextureDiffuseBlue, tiledCoord);
-        if(texColor.a < 0.5) {
-            discard;
-        }
+        
         finalColor *= texColor;
     }
 
