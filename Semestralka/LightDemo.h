@@ -16,6 +16,14 @@
 #include "WaterTile.h"
 #include "SpriteBatch.h"
 #include "Grass.h"
+#include "Cube.h"
+#include "Lamp.h"
+#include "Canvas.h"
+#include "Spline.h"
+#include "UIElements.h"
+
+constexpr float WORLD_SIZE = 600.0f;
+constexpr float WORLD_MAX_HEIGHT = 30.0f;
 
 class LightDemo : public Game {
 public:
@@ -23,14 +31,16 @@ public:
 
 	PerspectiveCamera mainCamera;
 	OrthoCamera lightCamera;
-	OrthoCamera guiCamera;
-	Shader lightShader, shadowShader, simpleShader, skyboxShader, terrainShader, waterShader;
+	Shader lightShader, shadowShader, simpleShader, skyboxShader, terrainShader, waterShader, canvasShader;
 	LightingTechnique lightingTechnique;
 	ShadowMapTechnique shadowMapTechnique;
 	SkyboxTechnique cubemapTechnique;
 	SimpleTechnique simpleTechnique;
 	TerrainTechnique terrainTechnique;
 	WaterTechnique waterTechnique;
+
+	Canvas canvas;
+	UIElements uiElements;
 
 	std::vector<WaterTile> waterTiles;
 
@@ -49,8 +59,6 @@ public:
 	Material colorMaterial;
 	WaterMaterrial waterMatrial;
 
-	float worldSize;
-
 	std::vector<Mesh> trees;
 	Mesh plane;
 	Mesh cube;
@@ -62,7 +70,11 @@ public:
 	Material grassMaterial;
 	std::vector<Grass> grassTiles;
 
-	std::vector<Mesh> guiTextures;
+	std::vector<Cube> cubes;
+	std::vector<Lamp> lamps;
+
+	Spline spline;
+	float t = 0.0f;
 
 	void init() override;
 	void update(float dt) override;
@@ -70,5 +82,4 @@ public:
 private:
 	void drawScene(const glm::vec4& clipPlane, bool tansparent);
 	void drawTransparent(const glm::vec4& clipPlane);
-	void drawGui();
 };

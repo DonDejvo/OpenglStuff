@@ -2,10 +2,10 @@
 
 #include "pgr.h"
 
-constexpr size_t NUM_BUFFERS = 5;
+constexpr size_t NUM_BUFFERS = 2;
 
 class Geometry {
-private:
+public:
 	enum BufferType {
 		VERTEX = 0,
 		INDEX = 1
@@ -13,7 +13,7 @@ private:
 
 	GLuint mVAO;
 	GLuint mBuffers[NUM_BUFFERS];
-public:
+
 	glm::vec3 scale = glm::vec3(1.0f);
 
 	struct Vertex {

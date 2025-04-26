@@ -14,7 +14,7 @@ void main() {
     vec4 clipSpace = u_PVM * vec4(a_Position, 1.0);
     vec4 worldPosition = u_Model * vec4(a_Position, 1.0);
 
-    v_TexCoord = a_TexCoord * 6.0;
+    v_TexCoord = a_TexCoord * 40.0;
     v_WorldPosition = worldPosition.xyz;
     v_ClipSpace = clipSpace;
 

@@ -2,7 +2,7 @@
 
 void WaterTechnique::init()
 {
-	FogTechnique::init();
+	ShaderTechnique::init();
 
 	mReflectionFramebuffer.width = 1024;
 	mReflectionFramebuffer.height = 1024;
@@ -22,12 +22,15 @@ void WaterTechnique::init()
 	mTextureLoc[REFLECTION - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureReflection");
 	mTextureLoc[REFRACTION - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureRefraction");
 	mTextureLoc[DISTORTION_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_DistortionMap");
+	mTextureLoc[TEST_TEX - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TestTex");
 
 	mDistortionIntensity = glGetUniformLocation(mShader->getProgramID(), "u_DistortionIntensity");
 
 	mDistortionEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_DistortionEnabled");
 
 	mTimeLoc = glGetUniformLocation(mShader->getProgramID(), "u_Time");
+
+	testLoc = glGetUniformLocation(mShader->getProgramID(), "u_Test");
 }
 
 void WaterTechnique::bindReflectionFBO(WaterTile& tile, Camera& camera) const
@@ -83,15 +86,21 @@ void WaterTechnique::supplyCameraPosition(const glm::vec3& pos) const
 
 void WaterTechnique::supplyMaterial(const Material& material) const
 {
-	glUniform1f(mDistortionIntensity, ((WaterMaterrial&)material).distortionIntensity);
+	const WaterMaterrial& waterMaterial = ((WaterMaterrial&)material);
+	glUniform1f(mDistortionIntensity, waterMaterial.distortionIntensity);
 }
 
 void WaterTechnique::enableDistortion(bool value) const
 {
-	glUniform1i(mDistortionEnabledLoc, value);
+	glUniform1i(mDistortionEnabledLoc, value ? 1 : 0);
 }
 
 void WaterTechnique::supplyTime(float time) const
 {
 	glUniform1f(mTimeLoc, time);
+}
+
+void WaterTechnique::supplyTest(float test) const
+{
+	glUniform1f(testLoc, test);
 }

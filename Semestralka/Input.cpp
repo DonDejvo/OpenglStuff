@@ -35,14 +35,15 @@ void Input::onKeyUp(unsigned char key)
 
 void Input::onMouseDown(int button)
 {
-    if (button < 8) {
+    if (button < INPUT_NUM_MOUSE_BUTTONS) {
         mMouseButtonsPressed[button] = true;
+        mMouseButtonsClicked[button] = true;
     }
 }
 
 void Input::onMouseUp(int button)
 {
-    if (button < 8) {
+    if (button < INPUT_NUM_MOUSE_BUTTONS) {
         mMouseButtonsPressed[button] = false;
     }
 }
@@ -60,8 +61,12 @@ void Input::onScroll(int direction)
 
 void Input::update()
 {
-    for (unsigned int i = 0; i < 255; ++i) {
+    for (unsigned int i = 0; i < INPUT_NUM_KEYS; ++i) {
         mKeysClicked[i] = false;
+    }
+
+    for (unsigned int i = 0; i < INPUT_NUM_MOUSE_BUTTONS; ++i) {
+        mMouseButtonsClicked[i] = false;
     }
 
     mMouseDeltaX = mMouseX - mMousePrevX;
@@ -83,7 +88,12 @@ bool Input::isKeyClicked(unsigned char key) const
 
 bool Input::isMouseButtonDown(int button) const
 {
-    return button < 8 ? mMouseButtonsPressed[button] : false;
+    return button < INPUT_NUM_MOUSE_BUTTONS ? mMouseButtonsPressed[button] : false;
+}
+
+bool Input::isMouseButtonClicked(int button) const
+{
+    return button < INPUT_NUM_MOUSE_BUTTONS ? mMouseButtonsClicked[button] : false;;
 }
 
 int Input::getMouseX() const

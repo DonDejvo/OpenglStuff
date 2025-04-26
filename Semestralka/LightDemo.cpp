@@ -4,26 +4,30 @@
 #include <fstream>
 #include "AssetManager.h"
 #include "Input.h"
+#include "Cube.h"
 
 void LightDemo::init()
 {
-	worldSize = 600.0f;
 
+	waterShader.loadFromFiles("shaders/water.vert", "shaders/water.frag");
 	lightShader.loadFromFiles("shaders/lighting.vert", "shaders/lighting.frag");
 	shadowShader.loadFromFiles("shaders/shadow.vert", "shaders/shadow.frag");
 	simpleShader.loadFromFiles("shaders/simple.vert", "shaders/simple.frag");
 	skyboxShader.loadFromFiles("shaders/skybox.vert", "shaders/skybox.frag");
 	terrainShader.loadFromFiles("shaders/terrain.vert", "shaders/terrain.frag");
-	waterShader.loadFromFiles("shaders/water.vert", "shaders/water.frag");
+	canvasShader.loadFromFiles("shaders/canvas.vert", "shaders/canvas.frag");
 
 	skybox.loadFromFiles({
-		"data/skybox/vz_clear_right.png",
-		"data/skybox/vz_clear_left.png",
-		"data/skybox/vz_clear_up.png",
-		"data/skybox/vz_clear_down.png",
-		"data/skybox/vz_clear_front.png",
-		"data/skybox/vz_clear_back.png"
+		"data/skybox/vz_dusk_right.png",
+		"data/skybox/vz_dusk_left.png",
+		"data/skybox/vz_dusk_up.png",
+		"data/skybox/vz_dusk_down.png",
+		"data/skybox/vz_dusk_front.png",
+		"data/skybox/vz_dusk_back.png"
 	});
+
+	waterTechnique.setShader(&waterShader);
+	waterTechnique.init();
 
 	lightingTechnique.setShader(&lightShader);
 	lightingTechnique.init();
@@ -40,8 +44,19 @@ void LightDemo::init()
 	terrainTechnique.setShader(&terrainShader);
 	terrainTechnique.init();
 
-	waterTechnique.setShader(&waterShader);
-	waterTechnique.init();
+	canvas.bitmapFont = BitmapFont();
+	canvas.bitmapFont.charset = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+	canvas.bitmapFont.spritesheet = Spritesheet();
+	canvas.bitmapFont.spritesheet.numSprites = 95;
+	canvas.bitmapFont.spritesheet.cols = 16;
+	canvas.bitmapFont.spritesheet.spriteWidth = 12;
+	canvas.bitmapFont.spritesheet.spriteHeight = 16;
+	canvas.bitmapFont.spritesheet.tex = AssetManager::get()->getTexture("data/common/pixfont-bold.png");
+	canvas.shader = &canvasShader;
+	canvas.defaultTexture = AssetManager::get()->getTexture("data/common/white_square.png");
+	canvas.init();
+
+	uiElements.setCanvas(&canvas);
 
 	mainCamera.position = glm::vec3(0.0f, 5.0f, 10.0f);
 	mainCamera.direction = glm::vec3(0.0f, -0.5f, -2.0f);
@@ -55,11 +70,14 @@ void LightDemo::init()
 	lightCamera.updateProjection();
 
 	fog.Color = glm::vec3(0.9f, 0.9f, 0.95f);
-	fog.Density = 0.0f;
+	fog.Density = 0.005f;
 
+	dirLight.color = glm::vec3(1.0f, 1.0f, 1.0f);
 	dirLight.diffuseIntensity = 0.9f;
 	dirLight.ambientIntensity = 0.1f;
 	dirLight.worldDirection = glm::vec3(0.0f, -2.0f, -1.0f);
+
+	
 
 	/*PointLight light1;
 	light1.color = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -111,19 +129,20 @@ void LightDemo::init()
 
 	colorMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	colorMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	colorMaterial.alpha = 0.25f;
+	colorMaterial.alpha = 0.5f;
 
 	terrainMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	terrainMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	terrainMaterial.blendMap = AssetManager::get()->getTexture("data/blendmaps/blendmap_01.png");
-	terrainMaterial.diffuseTexture = AssetManager::get()->getTexture("data/grass/Grass_01.png");
-	terrainMaterial.normalMap = AssetManager::get()->getTexture("data/grass/Grass_01_Nrm.png");
-	terrainMaterial.diffuseTextureRed = AssetManager::get()->getTexture("data/brick_ground/Ground_01.png");
-	terrainMaterial.normalMapRed = AssetManager::get()->getTexture("data/brick_ground/Ground_01_Nrm.png");
-	terrainMaterial.diffuseTextureGreen = AssetManager::get()->getTexture("data/grass/Grass_04.png");
-	terrainMaterial.normalMapGreen = AssetManager::get()->getTexture("data/grass/Grass_04_Nrm.png");
-	terrainMaterial.diffuseTextureBlue = AssetManager::get()->getTexture("data/dirt/Dirt_01.png");
-	terrainMaterial.normalMapBlue = AssetManager::get()->getTexture("data/dirt/Dirt_01_Nrm.png");
+	terrainMaterial.heightMap = AssetManager::get()->getTexture("data/heightmaps/Heightmap.png");
+	terrainMaterial.diffuseTexture = AssetManager::get()->getTexture("data/terrain/grass_green_d.jpg");
+	terrainMaterial.normalMap = AssetManager::get()->getTexture("data/terrain/grass_green_n.jpg");
+	terrainMaterial.diffuseTextureRed = AssetManager::get()->getTexture("data/terrain/desert_sand_d.jpg");
+	terrainMaterial.normalMapRed = AssetManager::get()->getTexture("data/terrain/desert_sand_n.jpg");
+	terrainMaterial.diffuseTextureGreen = AssetManager::get()->getTexture("data/terrain/mntn_brown_d.jpg");
+	terrainMaterial.normalMapGreen = AssetManager::get()->getTexture("data/terrain/mntn_brown_n.jpg");
+	terrainMaterial.diffuseTextureBlue = AssetManager::get()->getTexture("data/terrain/snow1_d.jpg");
+	terrainMaterial.normalMapBlue = AssetManager::get()->getTexture("data/terrain/snow1_n.jpg");
 
 	player.init();
 	player.setTerrain(&terrain);
@@ -131,19 +150,19 @@ void LightDemo::init()
 	playerCamera.setCamera(&mainCamera);
 	playerCamera.setPlayer(&player);
 
-	player.position.x = worldSize * 0.5f;
-	player.position.z = worldSize * 0.5f + 50.0f;
+	player.position.x = WORLD_SIZE * 0.5f;
+	player.position.z = WORLD_SIZE * 0.5f + 50.0f;
 
 	plane.setGeometry(&planeGeometry);
 	plane.setMaterial(0, &terrainMaterial);
 	plane.scale *= 60.0f;
 
-	terrain.setSegments(255, 255);
-	terrain.size = worldSize;
+	terrain.setSegments(256, 256);
+	terrain.size = WORLD_SIZE;
 	terrain.init();
 	Terrain::HeightMapConfig heightmapConfig;
-	heightmapConfig.maxHeight = 20.0f;
-	terrain.loadFromHeightMap("data/heightmaps/single_hill.png", heightmapConfig);
+	heightmapConfig.maxHeight = WORLD_MAX_HEIGHT;
+	terrain.loadFromHeightMap("data/heightmaps/Heightmap.png", heightmapConfig);
 	terrain.setMaterial(&terrainMaterial);
 
 	for (unsigned int i = 0; i < 250; ++i) {
@@ -167,30 +186,39 @@ void LightDemo::init()
 			break;
 		}
 
-		tree.position.x = rand() % 100 / 100.0f * worldSize;
-		tree.position.z = rand() % 100 / 100.0f * worldSize;
+		tree.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
+		tree.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
 		tree.position.y = terrain.getHeightAtPosition(tree.position);
 
 		trees.push_back(tree);
 	}
 
-	cube.setGeometry(&cubeGeometry);
-	cube.setMaterial(0, &colorMaterial);
-	//cube.loadFromFile("data/dragon/jadedragon.obj");
-	cube.scale *= 2.0f;
-	cube.position.x = worldSize * 0.5f;
-	cube.position.y = 12.5f;
-	cube.position.z = worldSize * 0.5f + 50.0f;
+	spline.points = {
+		{WORLD_SIZE * 0.5f, 17.5f, WORLD_SIZE * 0.5f + 50.0f},
+		{WORLD_SIZE * 0.5f + 50.0f, 17.5f, WORLD_SIZE * 0.5f},
+		{WORLD_SIZE * 0.5f, 17.5f, WORLD_SIZE * 0.5f - 50.0f},
+		{WORLD_SIZE * 0.5f - 50.0f, 17.5f, WORLD_SIZE * 0.5f}
+	};
+	spline.recalculateSegments();
+
+	//cube.setGeometry(&cubeGeometry);
+	//cube.setMaterial(0, &colorMaterial);
+	cube.loadFromFile("data/horse/CABALLO_low_poly.obj");
+	cube.scale *= 1.0f;
+	cube.yaw = AI_MATH_PI;
+	cube.position.x = WORLD_SIZE * 0.5f;
+	cube.position.y = 17.5f;
+	cube.position.z = WORLD_SIZE * 0.5f + 50.0f;
 
 	WaterTile waterTile;
-	waterTile.width = 100.0f;
-	waterTile.height = 100.0f;
+	waterTile.width = WORLD_SIZE;
+	waterTile.height = WORLD_SIZE;
 
 	waterTile.init();
 
-	waterTile.position.x = worldSize * 0.5f + 20.0f;
-	waterTile.position.y = 8.0f;
-	waterTile.position.z = worldSize * 0.5f;
+	waterTile.position.x = WORLD_SIZE * 0.5f;
+	waterTile.position.y = WORLD_MAX_HEIGHT * 0.15f;
+	waterTile.position.z = WORLD_SIZE * 0.5f;
 
 	waterMatrial.distortionIntensity = 0.004f;
 	waterMatrial.distortionTexture = AssetManager::get()->getTexture("data/water/waterdudv.jpg");
@@ -201,22 +229,26 @@ void LightDemo::init()
 
 	batch.init();
 
-	Sprite sprite1;
-	sprite1.position.x = worldSize * 0.5f;
-	sprite1.position.y = 20.0f;
-	sprite1.position.z = worldSize * 0.5f + 60.0f;
-	sprite1.scale *= 4;
-	sprite1.material = &colorMaterial;
-	batch.add(sprite1);
+	for (unsigned int i = 0; i < 100; ++i) {
+		Cube cube1;
+		cube1.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
+		cube1.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
+		cube1.position.y = terrain.getHeightAtPosition(cube1.position) + 2.5f;
+		cube1.scale *= 4;
+		cube1.material = &colorMaterial;
+		cubes.push_back(cube1);
+		cube1.add(batch);
+	}
 
-	Sprite sprite2;
-	sprite2.position.x = worldSize * 0.5f;
-	sprite2.position.y = 20.0f;
-	sprite2.position.z = worldSize * 0.5f + 70.0f;
-	sprite2.position.z += 4;
-	sprite2.scale *= 4;
-	sprite2.material = &colorMaterial;
-	batch.add(sprite2);
+	for (unsigned int i = 0; i < 16; ++i) {
+		Lamp lamp;
+		lamp.init();
+		lamp.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
+		lamp.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
+		lamp.position.y = terrain.getHeightAtPosition(lamp.position);
+		lamp.setPosition(lamp.position);
+		lamps.push_back(lamp);
+	}
 
 	grassMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	grassMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -229,8 +261,8 @@ void LightDemo::init()
 
 		grass.material = &grassMaterial;
 		grass.size = rand() % 100 / 50.0f + 0.5f;
-		grass.position.x = rand() % 100 / 100.0f * worldSize;
-		grass.position.z = rand() % 100 / 100.0f * worldSize;
+		grass.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
+		grass.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
 		grass.position.y = terrain.getHeightAtPosition(grass.position) + grass.size * 0.5f;
 
 		int tileId = rand() % 64;
@@ -245,29 +277,13 @@ void LightDemo::init()
 	}
 
 	grassBatch.prepare();
-
-	Mesh guiTex1;
-	guiTex1.position.x = -500;
-	guiTex1.position.y = 400;
-	guiTex1.scale.x = 256;
-	guiTex1.scale.y = 256;
-	guiTex1.setGeometry(&quadGeometry);
-
-	guiTextures.push_back(guiTex1);
-
-	Mesh guiTex2;
-	guiTex2.position.x = -200;
-	guiTex2.position.y = 400;
-	guiTex2.scale.x = 256;
-	guiTex2.scale.y = 256;
-	guiTex2.setGeometry(&quadGeometry);
-
-	guiTextures.push_back(guiTex2);
 }
 
 void LightDemo::update(float dt)
 {
 	Window* win = Window::get();
+
+	canvas.beginFrame();
 
 	//backpack.yaw += 1.0f * dt;
 	//cube.yaw += 1.0f * dt;
@@ -291,6 +307,9 @@ void LightDemo::update(float dt)
 	for (auto& tree : trees) {
 		tree.computeModelMatrix();
 	}
+	for (auto& lamp : lamps) {
+		lamp.computeModelMatrix();
+	}
 	plane.computeModelMatrix();
 	cube.computeModelMatrix();
 	terrain.computeModelMatrix();
@@ -306,18 +325,34 @@ void LightDemo::update(float dt)
 
 	lightCamera.update();
 
-	guiCamera.onResize(win->getWinWdth(), win->getWinHeight());
-	guiCamera.update();
+	t += dt * 0.25f;
+	cube.position = spline.getPoint(t);
+	cube.position.y = terrain.getHeightAtPosition(cube.position) + cube.scale.y * 3.0f;
+	glm::vec3 p = spline.getPoint1stDerivate(t);
+	cube.yaw = atan2(-p.z, p.x) + AI_MATH_PI;
 
-	for (auto& guiTex : guiTextures) {
-		guiTex.computeModelMatrix();
+	uiElements.begin(10, 10, 600, 300);
+	uiElements.text("Camera", 0, 0);
+	if (uiElements.button("Player", 0, 40)) {
+		playerCamera.setPlayer(&player);
 	}
+	if (uiElements.button("Horse", 200, 40)) {
+		playerCamera.setPlayer(&cube);
+	}
+	uiElements.end();
+
+	canvas.endFrame();
 }
 
 void LightDemo::draw()
 {
-	/*batch.sort(&mainCamera);
-	batch.prepare();*/
+	pointLights.clear();
+	for (auto& lamp : lamps) {
+		pointLights.push_back(lamp.light);
+	}
+
+	batch.sort(&mainCamera);
+	batch.prepare();
 
 	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_CULL_FACE);
@@ -333,7 +368,10 @@ void LightDemo::draw()
 	for (auto& tree : trees) {
 		shadowMapTechnique.draw(tree, { &lightCamera });
 	}
-	//shadowMapTechnique.draw(cube, { &lightCamera });
+	for (auto& lamp : lamps) {
+		shadowMapTechnique.draw(lamp, { &lightCamera });
+	}
+	shadowMapTechnique.draw(cube, { &lightCamera });
 	shadowMapTechnique.draw(player, { &lightCamera });
 	shadowMapTechnique.draw(terrain, { &lightCamera });
 
@@ -371,6 +409,9 @@ void LightDemo::draw()
 		waterTechnique.bindTextureUnits();
 		waterTechnique.supplyTime(Window::get()->getElapsedTime());
 
+		waterMatrial.distortionTexture->bind(TEST_TEX);
+		waterTechnique.supplyTest(waterMatrial.distortionIntensity);
+
 		waterTechnique.supplyCameraPosition(mainCamera.position);
 		waterTechnique.enableFog(true);
 		waterTechnique.supplyFog(fog);
@@ -380,7 +421,7 @@ void LightDemo::draw()
 
 	drawTransparent(glm::vec4(0, -1, 0, 1000));
 
-	//drawGui();
+	canvas.draw();
 }
 
 void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
@@ -413,7 +454,11 @@ void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
 	}
 	glEnable(GL_CULL_FACE);
 
-	//lightingTechnique.draw(cube, { &mainCamera, &lightCamera });
+	for (auto& lamp : lamps) {
+		lightingTechnique.draw(lamp, { &mainCamera, &lightCamera });
+	}
+
+	lightingTechnique.draw(cube, { &mainCamera, &lightCamera });
 	lightingTechnique.draw(player, { &mainCamera, &lightCamera });
 
 	glDisable(GL_CULL_FACE);
@@ -456,7 +501,7 @@ void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
 
 void LightDemo::drawTransparent(const glm::vec4& clipPlane)
 {
-	/*glEnable(GL_BLEND);
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_CULL_FACE);
 
@@ -479,31 +524,5 @@ void LightDemo::drawTransparent(const glm::vec4& clipPlane)
 	lightingTechnique.draw(batch, { &mainCamera, &lightCamera });
 
 	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);*/
-}
-
-void LightDemo::drawGui()
-{
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	simpleTechnique.use();
-
-	unsigned int i = 0;
-
-	for (auto& guiTex : guiTextures) {
-		if (i == 0) {
-			auto& reflectionFramebuffer = waterTechnique.getReflectionFramebuffer();
-			reflectionFramebuffer.getAttachment(0).bind(DIFFUSE);
-		}
-		else if (i == 1) {
-			auto& refractionFramebuffer = waterTechnique.getRefractionFramebuffer();
-			refractionFramebuffer.getAttachment(0).bind(DIFFUSE);
-		}
-
-		glm::mat4 PVMMatrix = guiCamera.getPVMatrix() * guiTex.getMatrix();
-		simpleTechnique.supplyPVMMatrix(PVMMatrix);
-		guiTex.draw(nullptr);
-		++i;
-	}
+	glDisable(GL_BLEND);
 }

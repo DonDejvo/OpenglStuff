@@ -13,6 +13,7 @@ public:
 
 	float shininess;
 	float alpha;
+	bool bidirectionalNormals;
 
 	Material() {
 		diffuseTexture = nullptr;
@@ -25,12 +26,14 @@ public:
 
 		shininess = 0.5f;
 		alpha = 1.0f;
+		bidirectionalNormals = false;
 	}
 };
 
 class TerrainMaterial : public Material {
 public:
 	Texture* blendMap;
+	Texture* heightMap;
 	Texture* diffuseTextureRed;
 	Texture* diffuseTextureGreen;
 	Texture* diffuseTextureBlue;

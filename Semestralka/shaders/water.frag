@@ -26,6 +26,9 @@ const float moveSpeed = 0.06;
 uniform bool u_FogEnabled = false;
 uniform Fog u_Fog;
 
+uniform float u_Test;
+uniform sampler2D u_TestTex;
+
 out vec4 FragColor;
 
 float CalcFogFactor() {
@@ -39,18 +42,18 @@ void main() {
 	vec2 reflectionCoord = vec2(ndc.x, 1.0 - ndc.y);
 	vec2 refractionCoord = vec2(ndc.x, ndc.y);
 
-	if(u_DistortionEnabled) {
-		vec2 distortion = (texture(u_DistortionMap, vec2(v_TexCoord.x + u_Time * moveSpeed, v_TexCoord.y)).xy * 2.0 - vec2(1.0)) * u_DistortionIntensity;
+	if(true) {
+		vec2 distortion = (texture(u_TestTex, vec2(v_TexCoord.x + u_Time * moveSpeed, v_TexCoord.y)).xy * 2.0 - vec2(1.0)) * u_Test;
 
 		reflectionCoord += distortion;
-		refractionCoord += distortion;
+		//refractionCoord += distortion;
 	}
 
 	vec4 reflectionColor = texture(u_TextureReflection, reflectionCoord);
 	vec4 refractionColor = texture(u_TextureRefraction, refractionCoord);
 
 	FragColor = mix(reflectionColor, refractionColor, 0.5);
-	if(u_FogEnabled) {
+	if(false) {
         float fogFactor = CalcFogFactor();
         FragColor = mix(vec4(u_Fog.Color, 1.0), FragColor, fogFactor);
     }

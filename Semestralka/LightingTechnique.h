@@ -6,8 +6,8 @@
 #include "Material.h"
 #include "Lights.h"
 
-constexpr unsigned int MAX_POINT_LIGHTS = 2;
-constexpr unsigned int MAX_SPOT_LIGHTS = 2;
+constexpr unsigned int MAX_POINT_LIGHTS = 16;
+constexpr unsigned int MAX_SPOT_LIGHTS = 16;
 
 class LightingTechnique : public FogTechnique {
 protected:
@@ -53,6 +53,7 @@ protected:
 		GLuint specularColor;
 		GLuint shininess;
 		GLuint alpha;
+		GLuint bidiretionalNormals;
 	} mMaterialLoc;
 
 	struct {

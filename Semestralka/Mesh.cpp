@@ -30,7 +30,6 @@ void Mesh::initFromScene(Data& data, const aiScene* scene, const std::string& pa
 		initMaterial(data, scene->mMaterials[i], i, directory);
 	}
 
-	data.geometry->computeTangents();
 	data.geometry->initBuffers();
 }
 
@@ -47,11 +46,15 @@ void Mesh::initSingleMesh(Data& data, aiMesh* mesh, unsigned int index, int& num
 		const aiVector3D& position = mesh->mVertices[i];
 		const aiVector3D& texCoord = mesh->HasTextureCoords(0) ? mesh->mTextureCoords[0][i] : zero3D;
 		const aiVector3D& normal = mesh->mNormals[i];
+		const aiVector3D& tangent = mesh->mTangents[i];
+		const aiVector3D& bitangent = mesh->mBitangents[i];
 
 		Geometry::Vertex v;
 		v.position = glm::vec3(position.x, position.y, position.z);
 		v.texCoord = glm::vec2(texCoord.x, texCoord.y);
 		v.normal = glm::vec3(normal.x, normal.y, normal.z);
+		v.tangent = glm::vec3(tangent.x, tangent.y, tangent.z);
+		v.bitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
 
 		data.geometry->vertices.push_back(v);
 	}
@@ -93,7 +96,7 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 		}
 	}
 
-	/*if (material->GetTextureCount(aiTextureType_HEIGHT) > 0) {
+	if (material->GetTextureCount(aiTextureType_HEIGHT) > 0) {
 		aiString path;
 		if (material->GetTexture(aiTextureType_HEIGHT, 0, &path) == AI_SUCCESS) {
 			std::string fileName(path.C_Str());
@@ -101,7 +104,7 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 			Texture* tex = AssetManager::get()->getTexture(directory + "/" + fileName);
 			data.materials[index]->normalMap = tex;
 		}
-	}*/
+	}
 
 	// Load colors
 	

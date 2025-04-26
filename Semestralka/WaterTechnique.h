@@ -16,6 +16,8 @@ private:
 	GLuint mDistortionEnabledLoc;
 	GLuint mDistortionIntensity;
 	GLuint mTimeLoc;
+
+	GLuint testLoc;
 public:
 	void init() override;
 
@@ -39,4 +41,6 @@ public:
 	void supplyMaterial(const Material& material) const override;
 	void enableDistortion(bool value) const override;
 	void supplyTime(float time) const;
+
+	void supplyTest(float test) const;
 };

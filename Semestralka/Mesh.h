@@ -8,7 +8,7 @@
 #include "Geometry.h"
 #include "Drawable.h"
 
-constexpr unsigned int MESH_IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs;
+constexpr unsigned int MESH_IMPORT_FLAGS = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace;
 
 class Mesh : public Drawable {
 public:

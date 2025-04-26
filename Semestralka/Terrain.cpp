@@ -53,7 +53,7 @@ void Terrain::loadFromHeightMap(const char* path, HeightMapConfig config)
                 continue;
             }
 
-            float height = (1.0f - r / 255.0f) * config.maxHeight;
+            float height = r / 255.0f * config.maxHeight;
             mPlaneGeometry.vertices[coordY * (mPlaneGeometry.widthSegments + 1) + coordX].position.y = height;
         }
     }
@@ -85,7 +85,7 @@ void Terrain::draw(DrawCallbacks* drawCallbacks) const
             mMaterial->diffuseTextureRed->bind(DIFFUSE_RED);
             mMaterial->diffuseTextureGreen->bind(DIFFUSE_GREEN);
             mMaterial->diffuseTextureBlue->bind(DIFFUSE_BLUE);
-            mMaterial->blendMap->bind(BLEND_MAP);
+            mMaterial->heightMap->bind(HEIGHT_MAP);
             drawCallbacks->enableDiffuseTexture(true);
         }
         else {

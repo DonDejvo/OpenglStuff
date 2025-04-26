@@ -1,10 +1,10 @@
 #pragma once
-#include "Player.h"
+#include "Mesh.h"
 #include "Camera.h"
 
 class PlayerCamera {
 private:
-	Player* mPlayer;
+	Mesh* mPlayer;
 	Camera* mCamera;
 public:
 	float distance;
@@ -19,7 +19,7 @@ public:
 		mCamera = camera;
 	}
 
-	inline void setPlayer(Player* player) {
+	inline void setPlayer(Mesh* player) {
 		mPlayer = player;
 	}
 };

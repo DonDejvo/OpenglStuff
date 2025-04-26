@@ -8,10 +8,10 @@ void Grass::place(SpriteBatch& spriteBatch)
 	sprite.position = position;
 	sprite.yaw = rand() % 100 / 100.0f * AI_MATH_HALF_PI;
 
-	sprite.region[0] = regionX;
-	sprite.region[1] = regionY;
-	sprite.region[2] = regionWidth;
-	sprite.region[3] = regionHeight;
+	sprite.region.x = regionX;
+	sprite.region.y = regionY;
+	sprite.region.w = regionWidth;
+	sprite.region.h = regionHeight;
 
 	Sprite sprite2;
 	sprite2.scale *= size;
@@ -19,10 +19,10 @@ void Grass::place(SpriteBatch& spriteBatch)
 	sprite2.position = position;
 	sprite2.yaw = sprite.yaw + AI_MATH_HALF_PI;
 
-	sprite2.region[0] = regionX;
-	sprite2.region[1] = regionY;
-	sprite2.region[2] = regionWidth;
-	sprite2.region[3] = regionHeight;
+	sprite2.region.x = regionX;
+	sprite2.region.y = regionY;
+	sprite2.region.w = regionWidth;
+	sprite2.region.h = regionHeight;
 
 	spriteBatch.add(sprite);
 	spriteBatch.add(sprite2);

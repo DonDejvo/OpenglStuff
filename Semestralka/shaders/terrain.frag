@@ -1,7 +1,7 @@
 #version 330
 
-const int MAX_POINT_LIGHTS = 2;
-const int MAX_SPOT_LIGHTS = 2;
+const int MAX_POINT_LIGHTS = 16;
+const int MAX_SPOT_LIGHTS = 16;
 
 struct Material {
     vec3 AmbientColor;
@@ -61,6 +61,7 @@ uniform sampler2D u_TextureDiffuseRed;
 uniform sampler2D u_TextureDiffuseGreen;
 uniform sampler2D u_TextureDiffuseBlue;
 uniform sampler2D u_BlendMap;
+uniform sampler2D u_HeightMap;
 uniform sampler2D u_TextureSpecular;
 uniform sampler2D u_ShadowMap;
 uniform sampler2D u_NormalMap;
@@ -80,6 +81,22 @@ uniform bool u_FogEnabled = false;
 uniform Fog u_Fog;
 
 out vec4 FragColor;
+
+float heightFunc(float a, float b, float h) {
+    float threshold = 0.05;
+    
+    if (h >= a && h <= b) {
+        return 1.0;
+    } else if (h >= a - threshold && h < a) {
+        // Rising edge interpolation [a-threshold, a) -> [0,1)
+        return (h - (a - threshold)) / threshold;
+    } else if (h > b && h <= b + threshold) {
+        // Falling edge interpolation (b, b+threshold] -> (1,0]
+        return 1.0 - (h - b) / threshold;
+    } else {
+        return 0.0;
+    }
+}
 
 vec3 CalcShadowCoords() {
     vec3 projCoords = v_LightSpacePosition.xyz / v_LightSpacePosition.w;
@@ -172,15 +189,27 @@ vec4 CalcPhongLighting() {
     vec3 normal = normalize(v_Normal);
     vec2 tiledCoord = v_TexCoord * 40.0;
 
-    vec4 blendMapColor = texture(u_BlendMap, v_TexCoord);
+    //vec4 blendMapColor = texture(u_BlendMap, v_TexCoord);
+    float height = texture(u_HeightMap, vec2(v_TexCoord.x, 1.0 - v_TexCoord.y)).r;
 
-    float backgroundIntensity = 1.0 - (blendMapColor.r + blendMapColor.g + blendMapColor.b);
+    //float backgroundIntensity = 1.0 - (blendMapColor.r + blendMapColor.g + blendMapColor.b);
 
     if(u_NormalMapEnabled) {
-        vec3 bumpMapNormal = backgroundIntensity * texture(u_NormalMap, tiledCoord).rgb +
+        /*vec3 bumpMapNormal = backgroundIntensity * texture(u_NormalMap, tiledCoord).rgb +
             blendMapColor.r * texture(u_NormalMapRed, tiledCoord).rgb +
             blendMapColor.g * texture(u_NormalMapGreen, tiledCoord).rgb +
-            blendMapColor.b * texture(u_NormalMapBlue, tiledCoord).rgb;
+            blendMapColor.b * texture(u_NormalMapBlue, tiledCoord).rgb;*/
+        vec3 bumpMapNormal = texture(u_NormalMapRed, tiledCoord).rgb * heightFunc(0.0, 0.2, height) +
+            texture(u_NormalMap, tiledCoord).rgb * heightFunc(0.2, 0.5, height) +
+            texture(u_NormalMapGreen, tiledCoord).rgb * heightFunc(0.5, 0.8, height) +
+            texture(u_NormalMapBlue, tiledCoord).rgb * heightFunc(0.8, 1.0, height);
+        /*if(height < 0.2) {
+            bumpMapNormal = texture(u_NormalMapRed, tiledCoord).rgb;
+        } else if(height > 0.9) {
+            bumpMapNormal = texture(u_NormalMapBlue, tiledCoord).rgb;
+        } else if(height > 0.7) {
+            bumpMapNormal = texture(u_NormalMapGreen, tiledCoord).rgb;
+        }*/
         bumpMapNormal = bumpMapNormal * 2.0 - vec3(1.0);
 
         vec3 tangent = normalize(v_Tangent);
@@ -203,10 +232,23 @@ vec4 CalcPhongLighting() {
     vec4 finalColor = totalLighting;
     if(u_DiffuseTextureEnabled) {
 
-        vec4 texColor = backgroundIntensity * texture(u_TextureDiffuse, tiledCoord) +
+        /*vec4 texColor = backgroundIntensity * texture(u_TextureDiffuse, tiledCoord) +
             blendMapColor.r * texture(u_TextureDiffuseRed, tiledCoord) +
             blendMapColor.g * texture(u_TextureDiffuseGreen, tiledCoord) +
-            blendMapColor.b * texture(u_TextureDiffuseBlue, tiledCoord);
+            blendMapColor.b * texture(u_TextureDiffuseBlue, tiledCoord);*/
+
+        vec4 texColor = texture(u_TextureDiffuseRed, tiledCoord) * heightFunc(0.0, 0.2, height) +
+            texture(u_TextureDiffuse, tiledCoord) * heightFunc(0.2, 0.5, height) +
+            texture(u_TextureDiffuseGreen, tiledCoord) * heightFunc(0.5, 0.8, height) +
+            texture(u_TextureDiffuseBlue, tiledCoord) * heightFunc(0.8, 1.0, height);
+        /*texture(u_TextureDiffuse, tiledCoord);
+        if(height < 0.2) {
+            texColor = texture(u_TextureDiffuseRed, tiledCoord);
+        } else if(height > 0.9) {
+            texColor = texture(u_TextureDiffuseBlue, tiledCoord);
+        } else if(height > 0.7) {
+            texColor = texture(u_TextureDiffuseGreen, tiledCoord);
+        }*/
         
         finalColor *= texColor;
     }

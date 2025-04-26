@@ -1,7 +1,7 @@
 #version 330
 
-const int MAX_POINT_LIGHTS = 2;
-const int MAX_SPOT_LIGHTS = 2;
+const int MAX_POINT_LIGHTS = 16;
+const int MAX_SPOT_LIGHTS = 16;
 
 struct Material {
     vec3 AmbientColor;
@@ -9,6 +9,7 @@ struct Material {
     vec3 SpecularColor;
     float Shininess;
     float Alpha;
+    bool BidirectionalNormals;
 };
 
 struct BaseLight {
@@ -110,6 +111,9 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, float 
     vec4 specularColor = vec4(0.0);
 
     float diffuseFactor = dot(normal, -lightDirection);
+    if(u_Material.BidirectionalNormals) {
+        diffuseFactor = abs(diffuseFactor);
+    }
 
     if(diffuseFactor > 0.0) {
         diffuseColor = vec4(light.Color, 1.0) * light.DiffuseIntensity * vec4(u_Material.DiffuseColor, 1.0) * diffuseFactor;

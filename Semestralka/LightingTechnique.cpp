@@ -13,6 +13,7 @@ void LightingTechnique::init()
 	mMaterialLoc.specularColor = glGetUniformLocation(mShader->getProgramID(), "u_Material.SpecularColor");
 	mMaterialLoc.shininess = glGetUniformLocation(mShader->getProgramID(), "u_Material.Shininess");
 	mMaterialLoc.alpha = glGetUniformLocation(mShader->getProgramID(), "u_Material.Alpha");
+	mMaterialLoc.bidiretionalNormals = glGetUniformLocation(mShader->getProgramID(), "u_Material.BidirectionalNormals");
 
 	mDirLightLoc.color = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.Color");
 	mDirLightLoc.ambientIntensity = glGetUniformLocation(mShader->getProgramID(), "u_DirectionalLight.Base.AmbientIntensity");
@@ -65,6 +66,7 @@ void LightingTechnique::supplyMaterial(const Material& material) const
 	glUniform3f(mMaterialLoc.specularColor, material.specularColor.r, material.specularColor.g, material.specularColor.b);
 	glUniform1f(mMaterialLoc.shininess, material.shininess);
 	glUniform1f(mMaterialLoc.alpha, material.alpha);
+	glUniform1i(mMaterialLoc.bidiretionalNormals, material.bidirectionalNormals ? 1 : 0);
 }
 
 void LightingTechnique::supplyDirLight(const DirectionalLight& dirLight) const

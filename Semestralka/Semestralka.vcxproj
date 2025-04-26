@@ -138,12 +138,17 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="BitmapFont.cpp" />
+    <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="FogTechnique.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Grass.cpp" />
+    <ClCompile Include="Lamp.cpp" />
     <ClCompile Include="mathUtils.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
+    <ClCompile Include="Rect.cpp" />
     <ClCompile Include="SkyboxTechnique.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Geometry.cpp" />
@@ -158,23 +163,32 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="ShadowMapTechnique.cpp" />
     <ClCompile Include="SimpleTechnique.cpp" />
     <ClCompile Include="SkyBox.cpp" />
+    <ClCompile Include="Spline.cpp" />
     <ClCompile Include="SpriteBatch.cpp" />
+    <ClCompile Include="Spritesheet.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainTechnique.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="UIElements.cpp" />
     <ClCompile Include="WaterTechnique.cpp" />
     <ClCompile Include="WaterTile.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
+    <ClInclude Include="BitmapFont.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Canvas.h" />
+    <ClInclude Include="Color.h" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="FogTechnique.h" />
     <ClInclude Include="Grass.h" />
+    <ClInclude Include="Lamp.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Rect.h" />
     <ClInclude Include="SkyboxTechnique.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="SkyBox.h" />
@@ -191,10 +205,14 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="ShaderTechnique.h" />
     <ClInclude Include="ShadowMapTechnique.h" />
     <ClInclude Include="SimpleTechnique.h" />
+    <ClInclude Include="Spline.h" />
     <ClInclude Include="SpriteBatch.h" />
+    <ClInclude Include="SpriteRegion.h" />
+    <ClInclude Include="Spritesheet.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainTechnique.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="UIElements.h" />
     <ClInclude Include="WaterTechnique.h" />
     <ClInclude Include="WaterTile.h" />
     <ClInclude Include="Window.h" />

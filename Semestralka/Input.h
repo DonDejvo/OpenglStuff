@@ -1,16 +1,20 @@
 #pragma once
 
+constexpr unsigned int INPUT_NUM_KEYS = 255;
+constexpr unsigned int INPUT_NUM_MOUSE_BUTTONS = 8;
+
 class Input {
 private:
 	static Input* mInstance;
 
-	bool mKeysPressed[255]{ false };
-	bool mKeysClicked[255]{ false };
+	bool mKeysPressed[INPUT_NUM_KEYS]{ false };
+	bool mKeysClicked[INPUT_NUM_KEYS]{ false };
 	int mMouseDeltaX, mMouseDeltaY;
 	int mMousePrevX, mMousePrevY;
 	int mMouseX, mMouseY;
 	int mWheelDelta;
-	bool mMouseButtonsPressed[8]{ false };
+	bool mMouseButtonsPressed[INPUT_NUM_MOUSE_BUTTONS]{ false };
+	bool mMouseButtonsClicked[INPUT_NUM_MOUSE_BUTTONS]{ false };
 public:
 	static Input* get();
 
@@ -28,6 +32,7 @@ public:
 	bool isKeyDown(unsigned char key) const;
 	bool isKeyClicked(unsigned char key) const;
 	bool isMouseButtonDown(int button) const;
+	bool isMouseButtonClicked(int button) const;
 	int getMouseX() const;
 	int getMouseY() const;
 	int getMouseDeltaX() const;

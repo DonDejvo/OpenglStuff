@@ -3,16 +3,32 @@
 void SpriteBatch::init()
 {
 	mGeometry.init();
+
+	std::vector<unsigned int> indices;
+	unsigned int indexCache[] = { 0, 2, 1, 0, 3, 2 };
+	for (unsigned int i = 0; i < MAX_SPRITES; ++i) {
+		for (unsigned int j = 0; j < 6; ++j) {
+			indices.push_back(i * 4 + indexCache[j]);
+		}
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mGeometry.mBuffers[Geometry::BufferType::INDEX]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mGeometry.mBuffers[Geometry::BufferType::VERTEX]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Geometry::Vertex) * MAX_SPRITES * 4, nullptr, GL_DYNAMIC_DRAW);
 }
 
 void SpriteBatch::clear()
 {
 	mSprites.clear();
+	mSpriteCount = 0;
 }
 
 void SpriteBatch::add(const Sprite& sprite)
 {
 	mSprites.push_back(sprite);
+	++mSpriteCount;
 }
 
 void SpriteBatch::prepare()
@@ -28,7 +44,9 @@ void SpriteBatch::prepare()
 	unsigned int materialIdx = 0;
 	unsigned int offset = 0;
 
-	for (auto& sprite : mSprites) {
+	for (unsigned int i = 0; i < mSpriteCount; ++i) {
+		auto& sprite = mSprites[i];
+
 		if (idx == 0) {
 			currentMaterial = sprite.material;
 		}
@@ -42,10 +60,10 @@ void SpriteBatch::prepare()
 		}
 
 		glm::vec2 UVCache[] = {
-			{sprite.region[0], sprite.region[1]},
-			{sprite.region[0] + sprite.region[2], sprite.region[1]},
-			{sprite.region[0] + sprite.region[2], sprite.region[1] + sprite.region[3]},
-			{sprite.region[0], sprite.region[1] + sprite.region[3]},
+			{sprite.region.x, sprite.region.y},
+			{sprite.region.x + sprite.region.w, sprite.region.y},
+			{sprite.region.x + sprite.region.w, sprite.region.y + sprite.region.h},
+			{sprite.region.x, sprite.region.y + sprite.region.h},
 		};
 
 		for (unsigned int i = 0; i < 4; ++i) {
@@ -56,14 +74,22 @@ void SpriteBatch::prepare()
 				spritePositions[i].y * sprite.scale.y, 
 				spritePositions[i].z);
 
-			glm::mat4 rotY = glm::rotate(glm::mat4(1.0f), sprite.yaw, glm::vec3(0, 1, 0));
-			position = glm::vec3(rotY * glm::vec4(position, 1.0f));
+			glm::mat4 rotMat = glm::mat4(1.0f);
+			rotMat = glm::rotate(rotMat, sprite.pitch, glm::vec3(1.0f, 0.0f, 0.0f));
+			rotMat = glm::rotate(rotMat, sprite.yaw, glm::vec3(0.0f, cos(sprite.pitch), sin(sprite.pitch)));
+			position = glm::vec3(rotMat * glm::vec4(position, 1.0f));
 
 			position += sprite.position;
 
 			v.position = position;
 			v.texCoord = UVCache[i];
-			v.normal = spriteNormal;
+
+			if (sprite.useFakeNormals) {
+				v.normal = upNormal;
+			}
+			else {
+				v.normal = glm::mat3(rotMat) * glm::vec3(0.0f, 0.0f, 1.0f);
+			}
 
 			mGeometry.vertices.push_back(v);
 		}
@@ -79,7 +105,8 @@ void SpriteBatch::prepare()
 		mGeometry.drawCalls.push_back({ 0, offset * 6, (idx - offset) * 6, materialIdx });
 		mMaterials.push_back(currentMaterial);
 
-		mGeometry.initBuffers();
+		glBindBuffer(GL_ARRAY_BUFFER, mGeometry.mBuffers[Geometry::BufferType::VERTEX]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, mGeometry.vertices.size() * sizeof(Geometry::Vertex), &mGeometry.vertices[0]);
 	}
 }
 

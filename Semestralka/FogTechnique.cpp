@@ -13,7 +13,7 @@ void FogTechnique::init()
 
 void FogTechnique::enableFog(bool value) const
 {
-	glUniform1i(mFogEnabledLoc, value ? 1 : 0);
+	glUniform1i(mFogEnabledLoc, value);
 }
 
 void FogTechnique::supplyFog(const Fog& fog) const
