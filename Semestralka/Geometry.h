@@ -38,6 +38,7 @@ public:
 	virtual void init();
 	void initBuffers();
 	void draw(unsigned int idx) const;
+	void drawInstanced(unsigned int count, unsigned int idx) const;
 	void computeTangents();
 
 	inline GLuint getVAO() const {

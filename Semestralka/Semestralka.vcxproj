@@ -146,6 +146,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="Grass.cpp" />
     <ClCompile Include="Lamp.cpp" />
     <ClCompile Include="mathUtils.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="Rect.cpp" />
@@ -153,7 +154,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="Input.cpp" />
-    <ClCompile Include="LightDemo.cpp" />
+    <ClCompile Include="Demo.cpp" />
     <ClCompile Include="LightingTechnique.cpp" />
     <ClCompile Include="Lights.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -185,6 +186,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="FogTechnique.h" />
     <ClInclude Include="Grass.h" />
     <ClInclude Include="Lamp.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="Drawable.h" />
@@ -195,7 +197,7 @@ xcopy "$(ProjectDir)shaders\*.*" "$(OutDir)shaders\" /E /I /Y</Command>
     <ClInclude Include="DrawCallbacks.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Geometry.h" />
-    <ClInclude Include="LightDemo.h" />
+    <ClInclude Include="Demo.h" />
     <ClInclude Include="LightingTechnique.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="Material.h" />

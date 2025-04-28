@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Window.h"
-#include "LightDemo.h"
+#include "Demo.h"
 
 int main(int argc, char** argv) {
 
@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     config.winWidth = 1920;
     config.winHeight = 1080;
 
-    LightDemo game(config);
+    Demo game(config);
 
     Window::start(argc, argv, &game);
 

@@ -5,6 +5,7 @@ Terrain::Terrain()
 {
     mMaterial = nullptr;
     x = 0.0f;
+    y = 0.0f;
     z = 0.0f;
     size = 100.0f;
 }
@@ -54,6 +55,7 @@ void Terrain::loadFromHeightMap(const char* path, HeightMapConfig config)
             }
 
             float height = r / 255.0f * config.maxHeight;
+
             mPlaneGeometry.vertices[coordY * (mPlaneGeometry.widthSegments + 1) + coordX].position.y = height;
         }
     }
@@ -70,7 +72,7 @@ void Terrain::loadFromHeightMap(const char* path, HeightMapConfig config)
 void Terrain::computeModelMatrix()
 {
     mMatrix = glm::mat4(1.0f);
-    mMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x + size * 0.5f, 0.0f, z + size * 0.5f)) * mMatrix;
+    mMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x + size * 0.5f, y, z + size * 0.5f)) * mMatrix;
 }
 
 void Terrain::draw(DrawCallbacks* drawCallbacks) const
@@ -145,14 +147,14 @@ float Terrain::getHeightAtPosition(const glm::vec3& position) const
         const glm::vec3& p2 = mPlaneGeometry.vertices[tileZ * (mPlaneGeometry.widthSegments + 1) + tileX + 1].position;
         const glm::vec3& p3 = mPlaneGeometry.vertices[(tileZ + 1) * (mPlaneGeometry.widthSegments + 1) + tileX + 1].position;
 
-        return calcBarrycentricCoordHeight(p1, p2, p3, x0, z0);
+        return y + calcBarrycentricCoordHeight(p1, p2, p3, x0, z0);
     }
     else {
         const glm::vec3& p1 = mPlaneGeometry.vertices[(tileZ + 1) * (mPlaneGeometry.widthSegments + 1) + tileX + 1].position;
         const glm::vec3& p2 = mPlaneGeometry.vertices[(tileZ + 1) * (mPlaneGeometry.widthSegments + 1) + tileX].position;
         const glm::vec3& p3 = mPlaneGeometry.vertices[tileZ * (mPlaneGeometry.widthSegments + 1) + tileX].position;
 
-        return calcBarrycentricCoordHeight(p1, p2, p3, x0, z0);
+        return y + calcBarrycentricCoordHeight(p1, p2, p3, x0, z0);
     }
 
     return 0.0f;

@@ -34,7 +34,7 @@ public:
 	void bindRefractionFBO(WaterTile& tile, Camera& camera) const;
 	void unbindRefractionFBO(WaterTile& tile, Camera& camera) const;
 
-	virtual void draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const;
+	void draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const;
 
 	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
 	void supplyCameraPosition(const glm::vec3& pos) const;

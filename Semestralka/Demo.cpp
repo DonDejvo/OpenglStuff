@@ -1,4 +1,4 @@
-#include "LightDemo.h"
+#include "Demo.h"
 #include "Window.h"
 #include <iostream>
 #include <fstream>
@@ -6,9 +6,8 @@
 #include "Input.h"
 #include "Cube.h"
 
-void LightDemo::init()
+void Demo::init()
 {
-
 	waterShader.loadFromFiles("shaders/water.vert", "shaders/water.frag");
 	lightShader.loadFromFiles("shaders/lighting.vert", "shaders/lighting.frag");
 	shadowShader.loadFromFiles("shaders/shadow.vert", "shaders/shadow.frag");
@@ -16,14 +15,31 @@ void LightDemo::init()
 	skyboxShader.loadFromFiles("shaders/skybox.vert", "shaders/skybox.frag");
 	terrainShader.loadFromFiles("shaders/terrain.vert", "shaders/terrain.frag");
 	canvasShader.loadFromFiles("shaders/canvas.vert", "shaders/canvas.frag");
+	particleShader.loadFromFiles("shaders/particle.vert", "shaders/particle.frag");
 
-	skybox.loadFromFiles({
-		"data/skybox/vz_dusk_right.png",
-		"data/skybox/vz_dusk_left.png",
-		"data/skybox/vz_dusk_up.png",
-		"data/skybox/vz_dusk_down.png",
-		"data/skybox/vz_dusk_front.png",
-		"data/skybox/vz_dusk_back.png"
+	skyboxDay.loadFromFiles({
+		"data/skybox/ClearOcean/vz_clear_ocean_right.png",
+		"data/skybox/ClearOcean/vz_clear_ocean_left.png",
+		"data/skybox/ClearOcean/vz_clear_ocean_up.png",
+		"data/skybox/ClearOcean/vz_clear_ocean_down.png",
+		"data/skybox/ClearOcean/vz_clear_ocean_front.png",
+		"data/skybox/ClearOcean/vz_clear_ocean_back.png"
+	});
+	skyboxDusk.loadFromFiles({
+		"data/skybox/DuskOcean/vz_dusk_ocean_right.png",
+		"data/skybox/DuskOcean/vz_dusk_ocean_left.png",
+		"data/skybox/DuskOcean/vz_dusk_ocean_up.png",
+		"data/skybox/DuskOcean/vz_dusk_ocean_down.png",
+		"data/skybox/DuskOcean/vz_dusk_ocean_front.png",
+		"data/skybox/DuskOcean/vz_dusk_ocean_back.png"
+	});
+	skyboxNight.loadFromFiles({
+		"data/skybox/SinisterOcean/vz_sinister_ocean_right.png",
+		"data/skybox/SinisterOcean/vz_sinister_ocean_left.png",
+		"data/skybox/SinisterOcean/vz_sinister_ocean_up.png",
+		"data/skybox/SinisterOcean/vz_sinister_ocean_down.png",
+		"data/skybox/SinisterOcean/vz_sinister_ocean_front.png",
+		"data/skybox/SinisterOcean/vz_sinister_ocean_back.png"
 	});
 
 	waterTechnique.setShader(&waterShader);
@@ -43,6 +59,15 @@ void LightDemo::init()
 
 	terrainTechnique.setShader(&terrainShader);
 	terrainTechnique.init();
+
+	particleTechnique.setShader(&particleShader);
+	particleTechnique.init();
+
+	particleSpritesheet.tex = AssetManager::get()->getTexture("data/flashburst_spritesheet.png");
+	particleSpritesheet.cols = 5;
+	particleSpritesheet.numSprites = 20;
+	particleSpritesheet.spriteWidth = 192;
+	particleSpritesheet.spriteHeight = 192;
 
 	canvas.bitmapFont = BitmapFont();
 	canvas.bitmapFont.charset = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -133,8 +158,7 @@ void LightDemo::init()
 
 	terrainMaterial.ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	terrainMaterial.diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	terrainMaterial.blendMap = AssetManager::get()->getTexture("data/blendmaps/blendmap_01.png");
-	terrainMaterial.heightMap = AssetManager::get()->getTexture("data/heightmaps/Heightmap.png");
+	terrainMaterial.heightMap = AssetManager::get()->getTexture("data/heightmaps/wgen_x0_y0.png");
 	terrainMaterial.diffuseTexture = AssetManager::get()->getTexture("data/terrain/grass_green_d.jpg");
 	terrainMaterial.normalMap = AssetManager::get()->getTexture("data/terrain/grass_green_n.jpg");
 	terrainMaterial.diffuseTextureRed = AssetManager::get()->getTexture("data/terrain/desert_sand_d.jpg");
@@ -144,8 +168,38 @@ void LightDemo::init()
 	terrainMaterial.diffuseTextureBlue = AssetManager::get()->getTexture("data/terrain/snow1_d.jpg");
 	terrainMaterial.normalMapBlue = AssetManager::get()->getTexture("data/terrain/snow1_n.jpg");
 
+	oceanMaterial = terrainMaterial;
+	oceanMaterial.heightMap = AssetManager::get()->getTexture("data/heightmaps/Test.png");
+
+	Terrain terrain;
+	terrain.y = WORLD_OFFSET_Y;
+	terrain.setSegments(256, 256);
+	terrain.size = WORLD_SIZE;
+	terrain.init();
+	Terrain::HeightMapConfig heightmapConfig;
+	heightmapConfig.maxHeight = WORLD_MAX_HEIGHT;
+	terrain.loadFromHeightMap("data/heightmaps/wgen_x0_y0.png", heightmapConfig);
+	terrain.setMaterial(&terrainMaterial);
+	terrains.push_back(terrain);
+
+	for (int i = -1; i <= 1; ++i) {
+		for (int j = -1; j <= 1; ++j) {
+			if (i == 0 && j == 0) continue;
+
+			Terrain ocean;
+			ocean.x = j * WORLD_SIZE;
+			ocean.y = WORLD_OFFSET_Y;
+			ocean.z = i * WORLD_SIZE;
+			ocean.setSegments(256, 256);
+			ocean.size = WORLD_SIZE;
+			ocean.init();
+			ocean.setMaterial(&oceanMaterial);
+			terrains.push_back(ocean);
+		}
+	}
+
 	player.init();
-	player.setTerrain(&terrain);
+	player.setTerrain(&terrains[0]);
 
 	playerCamera.setCamera(&mainCamera);
 	playerCamera.setPlayer(&player);
@@ -156,14 +210,6 @@ void LightDemo::init()
 	plane.setGeometry(&planeGeometry);
 	plane.setMaterial(0, &terrainMaterial);
 	plane.scale *= 60.0f;
-
-	terrain.setSegments(256, 256);
-	terrain.size = WORLD_SIZE;
-	terrain.init();
-	Terrain::HeightMapConfig heightmapConfig;
-	heightmapConfig.maxHeight = WORLD_MAX_HEIGHT;
-	terrain.loadFromHeightMap("data/heightmaps/Heightmap.png", heightmapConfig);
-	terrain.setMaterial(&terrainMaterial);
 
 	for (unsigned int i = 0; i < 250; ++i) {
 		Mesh tree;
@@ -188,7 +234,7 @@ void LightDemo::init()
 
 		tree.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
 		tree.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
-		tree.position.y = terrain.getHeightAtPosition(tree.position);
+		tree.position.y = getTerrainHeight(tree.position);
 
 		trees.push_back(tree);
 	}
@@ -211,13 +257,13 @@ void LightDemo::init()
 	cube.position.z = WORLD_SIZE * 0.5f + 50.0f;
 
 	WaterTile waterTile;
-	waterTile.width = WORLD_SIZE;
-	waterTile.height = WORLD_SIZE;
+	waterTile.width = WORLD_SIZE * 3;
+	waterTile.height = WORLD_SIZE * 3;
 
 	waterTile.init();
 
 	waterTile.position.x = WORLD_SIZE * 0.5f;
-	waterTile.position.y = WORLD_MAX_HEIGHT * 0.15f;
+	waterTile.position.y = WORLD_MAX_HEIGHT * 0.15f + WORLD_OFFSET_Y;
 	waterTile.position.z = WORLD_SIZE * 0.5f;
 
 	waterMatrial.distortionIntensity = 0.004f;
@@ -233,7 +279,7 @@ void LightDemo::init()
 		Cube cube1;
 		cube1.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
 		cube1.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
-		cube1.position.y = terrain.getHeightAtPosition(cube1.position) + 2.5f;
+		cube1.position.y = getTerrainHeight(cube1.position) + 2.5f;
 		cube1.scale *= 4;
 		cube1.material = &colorMaterial;
 		cubes.push_back(cube1);
@@ -245,7 +291,7 @@ void LightDemo::init()
 		lamp.init();
 		lamp.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
 		lamp.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
-		lamp.position.y = terrain.getHeightAtPosition(lamp.position);
+		lamp.position.y = getTerrainHeight(lamp.position);
 		lamp.setPosition(lamp.position);
 		lamps.push_back(lamp);
 	}
@@ -263,7 +309,7 @@ void LightDemo::init()
 		grass.size = rand() % 100 / 50.0f + 0.5f;
 		grass.position.x = rand() % 100 / 100.0f * WORLD_SIZE;
 		grass.position.z = rand() % 100 / 100.0f * WORLD_SIZE;
-		grass.position.y = terrain.getHeightAtPosition(grass.position) + grass.size * 0.5f;
+		grass.position.y = getTerrainHeight(grass.position) + grass.size * 0.5f;
 
 		int tileId = rand() % 64;
 		grass.regionX = 1.0f / 8 * (float)(tileId % 8);
@@ -279,7 +325,7 @@ void LightDemo::init()
 	grassBatch.prepare();
 }
 
-void LightDemo::update(float dt)
+void Demo::update(float dt)
 {
 	Window* win = Window::get();
 
@@ -312,7 +358,9 @@ void LightDemo::update(float dt)
 	}
 	plane.computeModelMatrix();
 	cube.computeModelMatrix();
-	terrain.computeModelMatrix();
+	for (Terrain& terrain : terrains) {
+		terrain.computeModelMatrix();
+	}
 	player.update(dt);
 	for (auto& tile : waterTiles) {
 		tile.computeModelMatrix();
@@ -327,24 +375,79 @@ void LightDemo::update(float dt)
 
 	t += dt * 0.25f;
 	cube.position = spline.getPoint(t);
-	cube.position.y = terrain.getHeightAtPosition(cube.position) + cube.scale.y * 3.0f;
+	cube.position.y = getTerrainHeight(cube.position) + cube.scale.y * 3.0f;
 	glm::vec3 p = spline.getPoint1stDerivate(t);
 	cube.yaw = atan2(-p.z, p.x) + AI_MATH_PI;
 
-	uiElements.begin(10, 10, 600, 300);
-	uiElements.text("Camera", 0, 0);
-	if (uiElements.button("Player", 0, 40)) {
-		playerCamera.setPlayer(&player);
+	particlesCounter -= dt;
+	if (particlesCounter <= 0.0f) {
+		particlesCounter = 0.05f;
+
+		for (unsigned int i = 0; i < 10; ++i) {
+			Particle p(player.position + glm::vec3(0, 2.0f, 0), 1.0f, 0.0f, rand() % 100 / 100.0f * 2.0f + 1.0f);
+			p.spritesheet = &particleSpritesheet;
+			p.angle = AI_MATH_PI;
+			p.velocity = glm::vec3(rand() % 100 / 100.0f * 2.0f - 1.0f, 2.0f, rand() % 100 / 100.0f * 2.0f - 1.0f);
+			p.spriteIndices = flashburstIndces;
+			particles.push_back(p);
+		}
 	}
-	if (uiElements.button("Horse", 200, 40)) {
-		playerCamera.setPlayer(&cube);
+
+	for (Particle& p : particles) {
+		p.update(dt);
 	}
-	uiElements.end();
+
+	auto filter = [](Particle& p) {
+		return !p.isAlive();
+	};
+	particles.erase(std::remove_if(particles.begin(), particles.end(), filter), particles.end());
+	Camera* camera = &mainCamera;
+	auto comp = [camera](Particle& p1, Particle& p2) {
+		return glm::distance(camera->position, p1.position) > glm::distance(camera->position, p2.position);
+		};
+	std::sort(particles.begin(), particles.end(), comp);
+
+	if (!menuOpened) {
+		if (uiElements.button("MENU", 10, 10)) {
+			menuOpened = true;
+		}
+	}
+	else {
+		uiElements.begin(10, 10, 600, 300);
+
+		float y = 0;
+
+		if (uiElements.button("X", 550, 0, 40, 40)) {
+			menuOpened = false;
+		}
+
+		uiElements.text("Camera", 0, y);
+		y += 40.0f;
+		if (uiElements.button("Player", 0, y)) {
+			playerCamera.setPlayer(&player);
+		}
+		if (uiElements.button("Horse", 200, y)) {
+			playerCamera.setPlayer(&cube);
+		}
+		y += 50.0f;
+		uiElements.text("Day Time", 0, y);
+		y += 40.0f;
+		if (uiElements.button("Day", 0, y)) {
+			setDayTime(DayTime::DAY);
+		}
+		if (uiElements.button("Dusk", 200, y)) {
+			setDayTime(DayTime::DUSK);
+		}
+		if (uiElements.button("Night", 400, y)) {
+			setDayTime(DayTime::NIGHT);
+		}
+		uiElements.end();
+	}
 
 	canvas.endFrame();
 }
 
-void LightDemo::draw()
+void Demo::draw()
 {
 	pointLights.clear();
 	for (auto& lamp : lamps) {
@@ -373,7 +476,9 @@ void LightDemo::draw()
 	}
 	shadowMapTechnique.draw(cube, { &lightCamera });
 	shadowMapTechnique.draw(player, { &lightCamera });
-	shadowMapTechnique.draw(terrain, { &lightCamera });
+	for (Terrain& terrain : terrains) {
+		shadowMapTechnique.draw(terrain, { &lightCamera });
+	}
 
 	shadowMapTechnique.unbindFBO();
 
@@ -393,13 +498,13 @@ void LightDemo::draw()
 	for (auto& tile : waterTiles) {
 		waterTechnique.bindReflectionFBO(tile, mainCamera);
 
-		drawScene(glm::vec4(0, 1, 0, -8), true);
+		drawScene(glm::vec4(0, 1, 0, -tile.position.y), true);
 
 		waterTechnique.unbindReflectionFBO(tile, mainCamera);
 
 		waterTechnique.bindRefractionFBO(tile, mainCamera);
 
-		drawScene(glm::vec4(0, -1, 0, 8), true);
+		drawScene(glm::vec4(0, -1, 0, tile.position.y), true);
 
 		waterTechnique.unbindRefractionFBO(tile, mainCamera);
 
@@ -424,7 +529,7 @@ void LightDemo::draw()
 	canvas.draw();
 }
 
-void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
+void Demo::drawScene(const glm::vec4& clipPlane, bool transparent)
 {
 	glEnable(GL_DEPTH_TEST);
 	glCullFace(GL_BACK);
@@ -483,12 +588,14 @@ void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
 
 	shadowMapTechnique.bindShadowMap();
 
-	terrainTechnique.draw(terrain, { &mainCamera, &lightCamera });
+	for (Terrain& terrain : terrains) {
+		terrainTechnique.draw(terrain, { &mainCamera, &lightCamera });
+	}
 
 	glCullFace(GL_FRONT);
 
 	cubemapTechnique.use();
-	skybox.bind(DIFFUSE);
+	bindSkybox();
 	cubemapTechnique.supplyPVMatrix(mainCamera.getProjMatrix() * glm::mat4(glm::mat3(mainCamera.getViewMatrix())));
 	cubemapTechnique.draw();
 
@@ -499,7 +606,7 @@ void LightDemo::drawScene(const glm::vec4& clipPlane, bool transparent)
 	}
 }
 
-void LightDemo::drawTransparent(const glm::vec4& clipPlane)
+void Demo::drawTransparent(const glm::vec4& clipPlane)
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -525,4 +632,76 @@ void LightDemo::drawTransparent(const glm::vec4& clipPlane)
 
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(false);
+
+	particleTechnique.use();
+	particleTechnique.supplySpritesheetInfo(particleSpritesheet);
+	particleTechnique.draw(particles, &mainCamera);
+
+	glDepthMask(true);
+	glDisable(GL_BLEND);
+}
+
+float Demo::getTerrainHeight(const glm::vec3& pos)
+{
+	for (Terrain& terrain : terrains) {
+		if (pos.x > terrain.x && pos.x < terrain.x + terrain.size && pos.z > terrain.z && pos.z < terrain.z + terrain.size) {
+			return terrain.getHeightAtPosition(pos);
+		}
+	}
+	return 0.0f;
+}
+
+void Demo::bindSkybox()
+{
+	switch (dayTime) {
+	case DayTime::DAY:
+		skyboxDay.bind(DIFFUSE);
+		break;
+	case DayTime::DUSK:
+		skyboxDusk.bind(DIFFUSE);
+		break;
+	case DayTime::NIGHT:
+		skyboxNight.bind(DIFFUSE);
+		break;
+	}
+}
+
+void Demo::setDayTime(DayTime dayTime)
+{
+	if (dayTime == this->dayTime) return;
+
+	this->dayTime = dayTime;
+	switch (dayTime) {
+	case DayTime::DAY:
+		dirLight.color = glm::vec3(1.0f, 1.0f, 1.0f);
+		dirLight.diffuseIntensity = 1.0f;
+		dirLight.ambientIntensity = 0.1f;
+		dirLight.worldDirection = glm::vec3(0.0f, -2.0f, -1.0f);
+
+		fog.Color = glm::vec3(0.8f, 0.85f, 0.95f);
+		fog.Density = 0.005f;
+		break;
+	case DayTime::DUSK:
+		dirLight.color = glm::vec3(0.5f, 0.4f, 0.4f);
+		dirLight.diffuseIntensity = 1.0f;
+		dirLight.ambientIntensity = 0.1f;
+		dirLight.worldDirection = glm::vec3(0.0f, -2.0f, -1.0f);
+
+		fog.Color = glm::vec3(0.5f, 0.4f, 0.4f);
+		fog.Density = 0.005f;
+		break;
+	case DayTime::NIGHT:
+		dirLight.color = glm::vec3(0.1f, 0.1f, 0.2f);
+		dirLight.diffuseIntensity = 1.0f;
+		dirLight.ambientIntensity = 0.1f;
+		dirLight.worldDirection = glm::vec3(0.0f, -2.0f, -1.0f);
+
+		fog.Color = glm::vec3(0.1f, 0.1f, 0.2f);
+		fog.Density = 0.005f;
+		break;
+	}
 }

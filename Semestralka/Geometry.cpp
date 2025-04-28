@@ -44,6 +44,11 @@ void Geometry::draw(unsigned int idx) const
 	glDrawElementsBaseVertex(GL_TRIANGLES, drawCalls[idx].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * drawCalls[idx].baseIndex), drawCalls[idx].baseVertex);
 }
 
+void Geometry::drawInstanced(unsigned int count, unsigned int idx) const
+{
+	glDrawElementsInstancedBaseVertex(GL_TRIANGLES, drawCalls[idx].numIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * drawCalls[idx].baseIndex), count, drawCalls[idx].baseVertex);
+}
+
 void Geometry::computeTangents()
 {
 	for (auto& v : vertices) {

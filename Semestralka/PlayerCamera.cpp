@@ -21,7 +21,7 @@ void PlayerCamera::update(float dt)
 		pitch += (float)Input::get()->getMouseDeltaY() / win->getWinHeight() * 10.0f;
 	}
 
-	distance -= Input::get()->getWheelDelta() * 0.5f;
+	distance = std::max(distance - Input::get()->getWheelDelta() * 0.5f, 1.0f);
 
 	glm::vec3 offset;
 

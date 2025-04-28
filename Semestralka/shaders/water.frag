@@ -53,8 +53,8 @@ void main() {
 	vec4 refractionColor = texture(u_TextureRefraction, refractionCoord);
 
 	FragColor = mix(reflectionColor, refractionColor, 0.5);
-	if(false) {
+	/*if(u_FogEnabled) {
         float fogFactor = CalcFogFactor();
         FragColor = mix(vec4(u_Fog.Color, 1.0), FragColor, fogFactor);
-    }
+    }*/
 }

@@ -10,7 +10,7 @@ private:
     glm::mat4 mMatrix;
     TerrainMaterial* mMaterial;
 public:
-    float x, z;
+    float x, y, z;
     float size;
 
     Terrain();

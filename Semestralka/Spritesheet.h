@@ -8,7 +8,7 @@ public:
 	int numSprites;
 	int cols;
 	int spriteWidth, spriteHeight;
-	int spacing, margin;
+	int spacing = 0, margin = 0;
 
 	SpriteRegion getRegion(unsigned int idx);
 };
