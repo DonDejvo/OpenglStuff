@@ -88,6 +88,9 @@ public:
 	std::vector<Grass> grassTiles;
 
 	Spline* spline;
+	Spline* threeTowersSpline;
+	float t = 0.0f;
+	bool animating = false;
 
 	std::vector<Particle> particles;
 	Spritesheet* particleSpritesheet;

@@ -216,6 +216,8 @@ void Game::init()
 	spline->points = generateFigureEightPoints(16, 10.0f);
 	spline->recalculateSegments();
 
+	threeTowersSpline = new Spline();
+
 	grassBatch.init();
 	for (unsigned int i = 0; i < 4000; ++i) {
 		int x = rand() % 3;
@@ -247,6 +249,14 @@ void Game::init()
 
 	setIsPlaying(false);
 	editor->loadLevel(*this);
+
+	std::vector<GameObject*> towers = getObjectsByType("magetower");
+	for (unsigned int i = 0; i < towers.size(); ++i) {
+		const glm::vec3& pos = towers[i]->getMesh()->position;
+		glm::vec3 p = pos + (pos - glm::vec3(WORLD_SIZE * 0.5f, 0, WORLD_SIZE * 0.5f)) * 0.1f + glm::vec3(0, WORLD_MAX_HEIGHT * 0.8f, 0);
+		threeTowersSpline->points.push_back(p);
+	}
+	threeTowersSpline->recalculateSegments();
 }
 
 void Game::update(float dt)
@@ -272,6 +282,15 @@ void Game::update(float dt)
 	}
 
 	editor->update(dt);
+
+	if (animating) {
+		t += 0.1f * dt;
+		if (t >= threeTowersSpline->points.size()) {
+			animating = false;
+		}
+		mainCamera.position = threeTowersSpline->getPoint(t);
+		mainCamera.direction = threeTowersSpline->getPoint1stDerivate(t) + glm::vec3(0, -0.5, 0);
+	}
 
 	mainCamera.onResize(win->getWinWdth(), win->getWinHeight());
 	mainCamera.update();
@@ -318,11 +337,17 @@ void Game::update(float dt)
 			if (uiElements.button("Player", 200, y)) {
 				playerCamera->setPlayer(getObjectByName("player"));
 			}
-			if (uiElements.button("Horse", 400, y)) {
+			y += 50.0f;
+			if (uiElements.button("Horse", 0, y)) {
 				std::vector<GameObject*> horses = getObjectsByType("horse");
 				if (!horses.empty()) {
 					playerCamera->setPlayer(horses[0]);
 				}
+			}
+			if (uiElements.button("Animation", 200, y)) {
+				playerCamera->setPlayer(nullptr);
+				animating = true;
+				t = 0.0f;
 			}
 		}
 
@@ -687,6 +712,7 @@ void Game::setIsPlaying(bool value)
 	playerCamera->enabled = isPlaying;
 	editor->enable(!isPlaying);
 	if (!isPlaying) {
+		animating = false;
 		for (GameObject* go : gameObjects) {
 			if (go->type == "horse") {
 				go->getMesh()->position = ((Horse*)go)->initialPosition;

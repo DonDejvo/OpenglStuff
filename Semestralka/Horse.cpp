@@ -1,5 +1,6 @@
 #include "Horse.h"
 #include "Game.h"
+#include "mathUtils.h"
 
 void Horse::init()
 {
@@ -10,6 +11,7 @@ void Horse::init()
 	mMesh->offset.y = 3.1f;
 	mMesh->offsetYaw = -AI_MATH_HALF_PI;
 	radius = 2.0f;
+	t = random();
 
     initialPosition = mMesh->position;
 }
