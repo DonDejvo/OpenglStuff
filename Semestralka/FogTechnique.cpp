@@ -2,7 +2,7 @@
 
 void FogTechnique::init()
 {
-	ShaderTechnique::init();
+	SimpleTechnique::init();
 
 	mFogEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_FogEnabled");
 

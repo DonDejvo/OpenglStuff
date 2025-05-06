@@ -55,15 +55,16 @@ in vec3 v_Bitangent;
 uniform bool u_SpecularEnabled = false;
 uniform bool u_DiffuseTextureEnabled = false;
 uniform bool u_NormalMapEnabled = false;
+uniform bool u_HeightMapEnabled = false;
 
 uniform sampler2D u_TextureDiffuse;
 uniform sampler2D u_TextureDiffuseRed;
 uniform sampler2D u_TextureDiffuseGreen;
 uniform sampler2D u_TextureDiffuseBlue;
-uniform sampler2D u_BlendMap;
 uniform sampler2D u_HeightMap;
 uniform sampler2D u_TextureSpecular;
 uniform sampler2D u_ShadowMap;
+uniform samplerCube u_ShadowCubeMap;
 uniform sampler2D u_NormalMap;
 uniform sampler2D u_NormalMapRed;
 uniform sampler2D u_NormalMapGreen;
@@ -81,6 +82,8 @@ uniform bool u_FogEnabled = false;
 uniform Fog u_Fog;
 
 out vec4 FragColor;
+
+const float shadowBias = 0.001;
 
 float heightFunc(float a, float b, float h) {
     float threshold = 0.05;
@@ -114,16 +117,24 @@ float CalcShadowFactor()
 {
     vec3 shadowCoords = CalcShadowCoords();
     if(shadowCoords.x < 0.0 || shadowCoords.x > 1.0 || shadowCoords.y < 0.0 || shadowCoords.y > 1.0) {
-        return 1.0;
+        return 0.0;
     }
 
     float depth = texture(u_ShadowMap, shadowCoords.xy).r;
-    float bias = 0.005;
-
-    if(shadowCoords.z - bias > depth) {
+    if(shadowCoords.z > depth + shadowBias) {
         return 0.5;
     }
-    return 1.0;
+
+    return 0.0;
+}
+
+float CalcShadowFactorPointLight(float lightDist, vec3 lightToPixel) {
+
+    lightToPixel.y = -lightToPixel.y;
+
+    float sampledDist = texture(u_ShadowCubeMap, lightToPixel).r;
+
+    return 0.0;
 }
 
 vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, vec2 coord, float shadowFactor) {
@@ -155,7 +166,7 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, vec2 c
         }
     }
 
-    return ambientColor + (diffuseColor + specularColor) * shadowFactor;
+    return ambientColor + (diffuseColor + specularColor) * (1.0 - shadowFactor);
 }
 
 vec4 CalcDirectionalLight(vec3 normal, vec2 coord) {
@@ -164,14 +175,16 @@ vec4 CalcDirectionalLight(vec3 normal, vec2 coord) {
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal, vec2 coord) {
-    vec3 direction = v_WorldPosition - light.Position;
-    float dist = length(direction);
-    direction = normalize(direction);
+    vec3 lightToPixel = v_WorldPosition - light.Position;
 
-    float shadowFactor = CalcShadowFactor();
-    vec4 color = CalcLightInternal(light.Base, direction, normal, coord, shadowFactor);
+    float lightDist = length(lightToPixel);
+    vec3 lightDirection = normalize(lightToPixel);
 
-    return color / (light.Attenuation.Const + dist * (light.Attenuation.Linear + dist * light.Attenuation.Exp));
+    float shadowFactor = CalcShadowFactorPointLight(lightDist, lightToPixel);
+
+    vec4 color = CalcLightInternal(light.Base, lightDirection, normal, coord, shadowFactor);
+
+    return color / (light.Attenuation.Const + lightDist * (light.Attenuation.Linear + lightDist * light.Attenuation.Exp));
 }
 
 vec4 CalcSpotLight(SpotLight light, vec3 normal, vec2 coord) {
@@ -190,7 +203,10 @@ vec4 CalcPhongLighting() {
     vec2 tiledCoord = v_TexCoord * 40.0;
 
     //vec4 blendMapColor = texture(u_BlendMap, v_TexCoord);
-    float height = texture(u_HeightMap, vec2(v_TexCoord.x, 1.0 - v_TexCoord.y)).r;
+    float height = 0.0;
+    if(u_HeightMapEnabled) {
+        height = texture(u_HeightMap, vec2(v_TexCoord.x, 1.0 - v_TexCoord.y)).r;
+    }
 
     //float backgroundIntensity = 1.0 - (blendMapColor.r + blendMapColor.g + blendMapColor.b);
 

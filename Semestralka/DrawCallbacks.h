@@ -8,4 +8,5 @@ public:
 	virtual void enableSpecularTexture(bool value) const {}
 	virtual void enableNormalMap(bool value) const {}
 	virtual void enableDistortion(bool value) const {}
+	virtual void enableHeightMap(bool value) const {}
 };

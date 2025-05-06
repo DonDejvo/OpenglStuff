@@ -10,7 +10,7 @@ void ShadowMapTechnique::init()
 	mShadowMapFBO.height = 1024;
 
 	mShadowMapFBO.init();
-	mShadowMapFBO.createDepthAttachment(GL_DEPTH_COMPONENT);
+	mShadowMapFBO.createDepthAttachment(GL_DEPTH_COMPONENT16);
 }
 
 void ShadowMapTechnique::supplyPVMMatrix(const glm::mat4& matrix) const

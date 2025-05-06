@@ -74,4 +74,7 @@ public:
 	void image(const Texture* tex, float x, float y, float w, float h);
 	void text(const std::string& text, float x, float y);
 	float computeTextWidth(const std::string& text);
+	inline const glm::mat4& getProjMatrix() const {
+		return projM;
+	}
 };

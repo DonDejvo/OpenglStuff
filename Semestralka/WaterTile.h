@@ -26,4 +26,8 @@ public:
 	}
 
 	void setMaterial(WaterMaterrial* mat);
+
+	inline virtual const glm::vec3& getColor() const override {
+		return glm::vec3(1.0f);
+	}
 };

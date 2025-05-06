@@ -72,6 +72,23 @@ bool UIElements::button(const std::string& text, float x, float y)
     return button(text, x, y, w, h);
 }
 
+bool UIElements::imageButton(const Texture* tex, float sx, float sy, float sw, float sh, float x, float y, float w, float h)
+{
+    glm::vec2 pos = getTranslatedMousePos();
+    Rect buttonRect(x, y, w, h);
+    bool hovered = buttonRect.contains(pos);
+    bool clicked = hovered && Input::get()->isMouseButtonClicked(GLUT_LEFT_BUTTON);
+
+    mCanvas->pushTranslate(x, y);
+    bool shouldHover = popNextButtonHovered();
+    mCanvas->color = hovered || shouldHover ? hoverBgColor : bgColor;
+    mCanvas->rect(0, 0, w, h);
+    mCanvas->image(tex, sx, sy, sw, sh, padding.x, padding.y, w - padding.x * 2, h - padding.y * 2);
+    mCanvas->popTranslate();
+
+    return clicked;
+}
+
 void UIElements::begin(float x, float y, float w, float h)
 {
     mCanvas->pushTranslate(x, y);

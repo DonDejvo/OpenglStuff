@@ -9,6 +9,7 @@ struct Fog {
 in vec2 v_TexCoord;
 in vec3 v_WorldPosition;
 in vec4 v_ClipSpace;
+in vec3 v_ToCamera;
 
 uniform bool u_DistortionEnabled = false;
 
@@ -21,7 +22,7 @@ uniform sampler2D u_TextureRefraction;
 uniform sampler2D u_DistortionMap;
 
 uniform float u_Time;
-const float moveSpeed = 0.06;
+const float moveSpeed = 0.04;
 
 uniform bool u_FogEnabled = false;
 uniform Fog u_Fog;
@@ -43,14 +44,17 @@ void main() {
 	vec2 refractionCoord = vec2(ndc.x, ndc.y);
 
 	if(true) {
-		vec2 distortion = (texture(u_TestTex, vec2(v_TexCoord.x + u_Time * moveSpeed, v_TexCoord.y)).xy * 2.0 - vec2(1.0)) * u_Test;
+		vec2 distortion = (texture(u_TestTex, vec2(v_TexCoord.x + u_Time * moveSpeed, v_TexCoord.y)).xy * 2.0 - vec2(1.0) + texture(u_TestTex, vec2(-v_TexCoord.x, v_TexCoord.y + u_Time * moveSpeed)).xy * 2.0 - vec2(1.0)) * u_Test;
 
 		reflectionCoord += distortion;
-		//refractionCoord += distortion;
+		refractionCoord += distortion;
 	}
 
 	vec4 reflectionColor = texture(u_TextureReflection, reflectionCoord);
 	vec4 refractionColor = texture(u_TextureRefraction, refractionCoord);
+
+	vec3 viewVector = normalize(v_ToCamera);
+	float viewFactor = dot(viewVector, vec3(0, 1, 0));
 
 	FragColor = mix(reflectionColor, refractionColor, 0.5);
 	/*if(u_FogEnabled) {

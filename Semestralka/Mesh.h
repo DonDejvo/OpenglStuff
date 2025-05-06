@@ -24,11 +24,16 @@ protected:
 	glm::mat4 mMatrix;
 	Data mData;
 public:
+	static unsigned int ids;
 	static Data loadDataFromFile(const std::string& path);
 
+	unsigned int id;
 	glm::vec3 position;
 	glm::vec3 scale;
 	float pitch, yaw;
+	glm::vec3 color;
+	glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.0f);
+	float offsetYaw = 0.0f;
 
 	Mesh();
 
@@ -46,4 +51,16 @@ public:
 	}
 
 	void computeModelMatrix();
+
+	virtual void update(float dt);
+
+	unsigned int getID() const override;
+
+	inline std::vector<Material*> getMaterials() {
+		return mData.materials;
+	}
+
+	inline virtual const glm::vec3& getColor() const override {
+		return color;
+	}
 };

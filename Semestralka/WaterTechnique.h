@@ -18,6 +18,7 @@ private:
 	GLuint mTimeLoc;
 
 	GLuint testLoc;
+	GLuint cameraPositionTestLoc;
 public:
 	void init() override;
 

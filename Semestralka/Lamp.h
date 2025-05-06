@@ -2,12 +2,14 @@
 
 #include "pgr.h"
 #include "Lights.h"
-#include "Mesh.h"
+#include "GameObject.h"
 
-class Lamp : public Mesh {
+class Lamp : public GameObject {
 public:
-	PointLight light;
+	PointLight* light;
 
-	void init();
-	void setPosition(const glm::vec3& pos);
+	~Lamp();
+
+	void init() override;
+	void update(float dt) override;
 };

@@ -32,8 +32,6 @@ public:
 
 class TerrainMaterial : public Material {
 public:
-	Texture* blendMap;
-	Texture* heightMap;
 	Texture* diffuseTextureRed;
 	Texture* diffuseTextureGreen;
 	Texture* diffuseTextureBlue;

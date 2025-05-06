@@ -17,6 +17,7 @@ constexpr GLenum NORMAL_MAP_BLUE = GL_TEXTURE10;
 constexpr GLenum REFLECTION = GL_TEXTURE0;
 constexpr GLenum REFRACTION = GL_TEXTURE1;
 constexpr GLenum DISTORTION_MAP = GL_TEXTURE2;
+constexpr GLenum CUBE_MAP_SHADOW_MAP = GL_TEXTURE11;
 
 constexpr GLenum TEST_TEX = GL_TEXTURE7;
 
@@ -30,7 +31,7 @@ private:
 public:
 	Texture();
 	void bind(GLenum texUnit) const;
-	void create(int width, int height, GLenum internalFormat, GLenum type, GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
+	void create(int width, int height, GLint internalFormat, GLenum format, GLenum type, GLenum minFilter = GL_LINEAR, GLenum magFilter = GL_LINEAR);
 	void loadFromFile(const std::string& path);
 
 	inline int getWidth() const {
@@ -44,4 +45,10 @@ public:
 	inline GLuint getTexID() const {
 		return mTextureID;
 	}
+
+	inline const std::string& getPath() const {
+		return mPath;
+	}
+
+	static GLenum getFormat(GLint internalFormat);
 };

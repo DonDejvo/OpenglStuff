@@ -12,4 +12,11 @@ void TerrainTechnique::init()
 	mTextureLoc[NORMAL_MAP_RED - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_NormalMapRed");
 	mTextureLoc[NORMAL_MAP_GREEN - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_NormalMapGreen");
 	mTextureLoc[NORMAL_MAP_BLUE - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_NormalMapBlue");
+
+	mHeightMapEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_HeightMapEnabled");
+}
+
+void TerrainTechnique::enableHeightMap(bool value) const
+{
+	glUniform1i(mHeightMapEnabledLoc, value ? 1 : 0);
 }

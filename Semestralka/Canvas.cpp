@@ -130,7 +130,7 @@ void Canvas::draw()
 
 	shader->use();
 
-	projM = glm::orthoRH(0.0f, (float)win->getWinWdth(), (float)win->getWinHeight(), 0.0f, 0.0f, 10.0f);
+	projM = glm::orthoRH(0.0f, (float)win->getWinWdth(), (float)win->getWinHeight(), 0.0f, -100.0f, 100.0f);
 	glUniformMatrix4fv(mProjMLoc, 1, GL_FALSE, &projM[0][0]);
 
 	glBindVertexArray(mVAO);

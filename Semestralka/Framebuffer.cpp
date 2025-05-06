@@ -5,35 +5,37 @@ void Framebuffer::init()
 	glGenFramebuffers(1, &mFBO);
 }
 
-void Framebuffer::bind() const
+void Framebuffer::bind(GLenum unit) const
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
+	glBindFramebuffer(unit, mFBO);
 }
 
-void Framebuffer::unbind() const
+void Framebuffer::unbind(GLenum unit) const
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(unit, 0);
 }
 
-void Framebuffer::createAttachment(GLenum internalFormat, GLenum minFilter, GLenum magFilter)
+void Framebuffer::createAttachment(GLint internalFormat, GLenum minFilter, GLenum magFilter)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 
 	Texture colorAttachment;
-	colorAttachment.create(width, height, internalFormat, GL_UNSIGNED_BYTE, minFilter, magFilter);
+	colorAttachment.create(width, height, internalFormat, Texture::getFormat(internalFormat), GL_UNSIGNED_BYTE, minFilter, magFilter);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + mColorAttachments.size(), GL_TEXTURE_2D, colorAttachment.getTexID(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachmentCount, GL_TEXTURE_2D, colorAttachment.getTexID(), 0);
 
-	mColorAttachments.push_back(colorAttachment);
+	mColorAttachments[attachmentCount] = colorAttachment;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	++attachmentCount;
 }
 
-void Framebuffer::createDepthAttachment(GLenum internalFormat, GLenum minFilter, GLenum magFilter)
+void Framebuffer::createDepthAttachment(GLint internalFormat, GLenum minFilter, GLenum magFilter)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 
-	mDepthAttachment.create(width, height, internalFormat, GL_FLOAT, minFilter, magFilter);
+	mDepthAttachment.create(width, height, internalFormat, Texture::getFormat(internalFormat), GL_FLOAT, minFilter, magFilter);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthAttachment.getTexID(), 0);
 
@@ -54,7 +56,7 @@ void Framebuffer::createDepthBuffer()
 
 const Texture& Framebuffer::getAttachment(unsigned int idx) const
 {
-	return mColorAttachments[idx];
+	return mColorAttachments.at(idx);
 }
 
 const Texture& Framebuffer::getDepthAttachment() const

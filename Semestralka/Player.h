@@ -1,20 +1,24 @@
 #pragma once
 
-#include "Mesh.h"
-#include "Terrain.h"
+#include "GameObject.h"
+#include "PlayerMovement.h"
+#include "PlayerCamera.h"
 
-class Player : public Mesh {
+class Player : public GameObject {
 private:
-	Terrain* mTerrain;
+	PlayerMovement* mPlayerMovement;
+	
 public:
-	float moveSpeed;
-	float turnSpeed;
+	Player(Camera* camera);
+	~Player();
 
-	Player();
-	void init();
-	void update(float dt);
+	void init() override;
 
-	inline void setTerrain(Terrain* terrain) {
-		mTerrain = terrain;
+	void update(float dt) override;
+
+	inline PlayerMovement* getPlayerMovement() const {
+		return mPlayerMovement;
 	}
+
+	void enableMovement(bool value);
 };

@@ -23,6 +23,7 @@ void LightingTechnique::init()
 	mTextureLoc[DIFFUSE - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureDiffuse");
 	mTextureLoc[SPECULAR - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_TextureSpecular");
 	mTextureLoc[SHADOW_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowMap");
+	mTextureLoc[CUBE_MAP_SHADOW_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_ShadowCubeMap");
 	mTextureLoc[NORMAL_MAP - GL_TEXTURE0] = glGetUniformLocation(mShader->getProgramID(), "u_NormalMap");
 
 	mSpecularEnabledLoc = glGetUniformLocation(mShader->getProgramID(), "u_SpecularEnabled");
@@ -77,11 +78,11 @@ void LightingTechnique::supplyDirLight(const DirectionalLight& dirLight) const
 	glUniform3fv(mDirLightLoc.direction, 1, &glm::normalize(dirLight.worldDirection)[0]);
 }
 
-void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLights) const
+void LightingTechnique::supplyPointLights(const std::vector<PointLight*>& pointLights) const
 {
 	glUniform1i(mNumPointLightsLoc, pointLights.size());
 	for (unsigned int i = 0; i < pointLights.size(); ++i) {
-		const PointLight& light = pointLights[i];
+		PointLight& light = *pointLights[i];
 
 		glUniform3f(mPointLightsLoc[i].color, light.color.r, light.color.g, light.color.b);
 		glUniform1f(mPointLightsLoc[i].ambientIntensity, light.ambientIntensity);
@@ -93,11 +94,11 @@ void LightingTechnique::supplyPointLights(const std::vector<PointLight>& pointLi
 	}
 }
 
-void LightingTechnique::supplySpotLights(const std::vector<SpotLight>& spotLights) const
+void LightingTechnique::supplySpotLights(const std::vector<SpotLight*>& spotLights) const
 {
 	glUniform1i(mNumSpotLightsLoc, spotLights.size());
 	for (unsigned int i = 0; i < spotLights.size(); ++i) {
-		const SpotLight& light = spotLights[i];
+		SpotLight& light = *spotLights[i];
 
 		glUniform3f(mSpotLightsLoc[i].color, light.color.r, light.color.g, light.color.b);
 		glUniform1f(mSpotLightsLoc[i].ambientIntensity, light.ambientIntensity);
@@ -148,10 +149,16 @@ void LightingTechnique::supplyClipPlane(const glm::vec4& plane) const
 
 void LightingTechnique::draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const
 {
+	supplyColor(drawable.getColor());
 	supplyModelMatrix(drawable.getMatrix());
 	glm::mat4 PVMMatrix = cameras[0]->getPVMatrix() * drawable.getMatrix();
 	supplyPVMMatrix(PVMMatrix);
 	glm::mat4 lightPVMMatrix = cameras[1]->getPVMatrix() * drawable.getMatrix();
 	supplyLightPVMMatrix(lightPVMMatrix);
 	drawable.draw((DrawCallbacks*)this);
+}
+
+void LightingTechnique::supplyColor(const glm::vec3& color) const
+{
+	glUniform3fv(mColorLoc, 1, &color[0]);
 }

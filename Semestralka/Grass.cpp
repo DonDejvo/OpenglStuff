@@ -1,4 +1,5 @@
 #include "Grass.h"
+#include "mathUtils.h"
 
 void Grass::place(SpriteBatch& spriteBatch)
 {
@@ -6,7 +7,7 @@ void Grass::place(SpriteBatch& spriteBatch)
 	sprite.scale *= size;
 	sprite.material = material;
 	sprite.position = position;
-	sprite.yaw = rand() % 100 / 100.0f * AI_MATH_HALF_PI;
+	sprite.yaw = random() * AI_MATH_HALF_PI;
 
 	sprite.region.x = regionX;
 	sprite.region.y = regionY;

@@ -1,44 +1,56 @@
 #include "Player.h"
-#include "Input.h"
+#include "Game.h"
 
-Player::Player()
+Player::Player(Camera* camera)
 {
-	mTerrain = nullptr;
-	moveSpeed = 20.0f;
-	turnSpeed = 2.5f;
+	name = "player";
+	type = "player";
+	mPlayerMovement = new PlayerMovement(this);
+	mass = 1.0f;
+}
+
+Player::~Player()
+{
+	delete mPlayerMovement;
 }
 
 void Player::init()
 {
-	loadFromFile("data/hero/character.obj");
-	for (Material* material : mData.materials) {
-		material->ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	}
-	scale = glm::vec3(0.5f);
+	mMesh->loadFromFile("data/hero/character.obj");
+	mMesh->scale *= 0.5f;
 }
 
 void Player::update(float dt)
 {
-	float currentSpeed = 0.0f;
-	if (Input::get()->isKeyDown('w')) {
-		currentSpeed = moveSpeed;
-	} else if (Input::get()->isKeyDown('s')) {
-		currentSpeed = -moveSpeed;
-	}
-	float currentTurnSpeed = 0.0f;
-	if (Input::get()->isKeyDown('a')) {
-		currentTurnSpeed = turnSpeed;
-	}
-	else if (Input::get()->isKeyDown('d')) {
-		currentTurnSpeed = -turnSpeed;
+	GameObject::update(dt);
+
+	mPlayerMovement->update(dt);
+
+	for (GameObject* go : game->gameObjects) {
+		if (this == go) continue;
+
+		collide(go);
 	}
 
-	yaw += currentTurnSpeed * dt;
+	glm::vec3& pos = mMesh->position;
 
-	position.z -= cos(-yaw) * currentSpeed * dt;
-	position.x += sin(-yaw) * currentSpeed * dt;
+	if (pos.x < 0) {
+		pos.x = 0;
+	}
+	else if (pos.x > WORLD_SIZE) {
+		pos.x = WORLD_SIZE;
+	}
+	if (pos.z < 0) {
+		pos.z = 0;
+	}
+	else if (pos.z > WORLD_SIZE) {
+		pos.z = WORLD_SIZE;
+	}
 
-	position.y = mTerrain->getHeightAtPosition(position);
+	pos.y = ((Game*)game)->terrainManager->getHeightAtPosition(pos);
+}
 
-	computeModelMatrix();
+void Player::enableMovement(bool value)
+{
+	mPlayerMovement->enabled = value;
 }

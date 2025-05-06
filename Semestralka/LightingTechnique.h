@@ -68,8 +68,8 @@ public:
 	void init() override;
 	void supplyMaterial(const Material& material) const override;
 	void supplyDirLight(const DirectionalLight& dirLight) const;
-	void supplyPointLights(const std::vector<PointLight>& pointLights) const;
-	void supplySpotLights(const std::vector<SpotLight>& spotLights) const;
+	void supplyPointLights(const std::vector<PointLight*>& pointLights) const;
+	void supplySpotLights(const std::vector<SpotLight*>& spotLights) const;
 	void supplyLightPVMMatrix(const glm::mat4& PVMMatrix) const;
 	void supplyModelMatrix(const glm::mat4& modelMatrix) const;
 	void enableSpecularTexture(bool value) const override;
@@ -78,4 +78,5 @@ public:
 	void supplyCameraPosition(const glm::vec3& pos) const;
 	void supplyClipPlane(const glm::vec4& plane) const;
 	void draw(const Drawable& drawable, const std::vector<Camera*>& cameras) const override;
+	void supplyColor(const glm::vec3& color) const;
 };

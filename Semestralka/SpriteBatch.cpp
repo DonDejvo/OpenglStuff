@@ -137,6 +137,8 @@ void SpriteBatch::draw(DrawCallbacks* drawCallbacks) const
 			else {
 				drawCallbacks->enableDiffuseTexture(false);
 			}
+			drawCallbacks->enableNormalMap(false);
+			drawCallbacks->enableSpecularTexture(false);
 		}
 
 		mGeometry.draw(i);

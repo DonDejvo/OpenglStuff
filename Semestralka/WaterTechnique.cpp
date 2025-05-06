@@ -7,13 +7,13 @@ void WaterTechnique::init()
 	mReflectionFramebuffer.width = 1024;
 	mReflectionFramebuffer.height = 1024;
 	mReflectionFramebuffer.init();
-	mReflectionFramebuffer.createAttachment(GL_RGB);
+	mReflectionFramebuffer.createAttachment(GL_RGB8);
 	mReflectionFramebuffer.createDepthBuffer();
 
 	mRefractionFramebuffer.width = 1024;
 	mRefractionFramebuffer.height = 1024;
 	mRefractionFramebuffer.init();
-	mRefractionFramebuffer.createAttachment(GL_RGB);
+	mRefractionFramebuffer.createAttachment(GL_RGB8);
 	mRefractionFramebuffer.createDepthBuffer();
 
 	modelLocation = glGetUniformLocation(mShader->getProgramID(), "u_Model");
@@ -31,6 +31,7 @@ void WaterTechnique::init()
 	mTimeLoc = glGetUniformLocation(mShader->getProgramID(), "u_Time");
 
 	testLoc = glGetUniformLocation(mShader->getProgramID(), "u_Test");
+	cameraPositionTestLoc = glGetUniformLocation(mShader->getProgramID(), "u_CameraPositionTest");
 }
 
 void WaterTechnique::bindReflectionFBO(WaterTile& tile, Camera& camera) const
@@ -71,6 +72,7 @@ void WaterTechnique::draw(const Drawable& drawable, const std::vector<Camera*>& 
 	glm::mat4 PVMMatrix = cameras[0]->getPVMatrix() * drawable.getMatrix();
 	supplyPVMMatrix(PVMMatrix);
 	supplyModelMatrix(drawable.getMatrix());
+	supplyCameraPosition(cameras[0]->position);
 	drawable.draw((DrawCallbacks*)this);
 }
 
@@ -81,7 +83,7 @@ void WaterTechnique::supplyModelMatrix(const glm::mat4& modelMatrix) const
 
 void WaterTechnique::supplyCameraPosition(const glm::vec3& pos) const
 {
-	glUniform3fv(mCameraPosLoc, 1, &pos[0]);
+	glUniform3fv(cameraPositionTestLoc, 1, &pos[0]);
 }
 
 void WaterTechnique::supplyMaterial(const Material& material) const

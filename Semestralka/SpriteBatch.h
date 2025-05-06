@@ -8,7 +8,7 @@
 #include "Drawable.h"
 #include "SpriteRegion.h"
 
-constexpr unsigned int MAX_SPRITES = 10000;
+constexpr unsigned int MAX_SPRITES = 20000;
 
 const glm::vec3 spritePositions[] = {
 	{-0.5f, 0.5f, 0.0f},
@@ -49,4 +49,7 @@ public:
 		return mMatrix;
 	}
 	
+	inline virtual const glm::vec3& getColor() const override {
+		return glm::vec3(1.0f);
+	}
 };

@@ -1,12 +1,16 @@
 #include "Mesh.h"
-#include <iostream>
 #include "AssetManager.h"
+#include <iostream>
+
+unsigned int Mesh::ids = 0;
 
 Mesh::Mesh() {
+	id = ++ids;
 	position = glm::vec3(0.0f);
 	scale = glm::vec3(1.0f);
 	pitch = 0;
 	yaw = 0;
+	color = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 
 void Mesh::initFromScene(Data& data, const aiScene* scene, const std::string& path)
@@ -46,15 +50,18 @@ void Mesh::initSingleMesh(Data& data, aiMesh* mesh, unsigned int index, int& num
 		const aiVector3D& position = mesh->mVertices[i];
 		const aiVector3D& texCoord = mesh->HasTextureCoords(0) ? mesh->mTextureCoords[0][i] : zero3D;
 		const aiVector3D& normal = mesh->mNormals[i];
-		const aiVector3D& tangent = mesh->mTangents[i];
-		const aiVector3D& bitangent = mesh->mBitangents[i];
 
 		Geometry::Vertex v;
 		v.position = glm::vec3(position.x, position.y, position.z);
 		v.texCoord = glm::vec2(texCoord.x, texCoord.y);
 		v.normal = glm::vec3(normal.x, normal.y, normal.z);
-		v.tangent = glm::vec3(tangent.x, tangent.y, tangent.z);
-		v.bitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
+
+		if (mesh->HasTangentsAndBitangents()) {
+			const aiVector3D& tangent = mesh->mTangents[i];
+			const aiVector3D& bitangent = mesh->mBitangents[i];
+			v.tangent = glm::vec3(tangent.x, tangent.y, tangent.z);
+			v.bitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
+		}
 
 		data.geometry->vertices.push_back(v);
 	}
@@ -90,7 +97,6 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 		aiString path;
 		if (material->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
 			std::string fileName(path.C_Str());
-			std::cout << "Specular tex name: " << fileName << "\n";
 			Texture* tex = AssetManager::get()->getTexture(directory + "/" + fileName);
 			data.materials[index]->specularTexture = tex;
 		}
@@ -100,7 +106,6 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 		aiString path;
 		if (material->GetTexture(aiTextureType_HEIGHT, 0, &path) == AI_SUCCESS) {
 			std::string fileName(path.C_Str());
-			std::cout << "Normal tex name: " << fileName << "\n";
 			Texture* tex = AssetManager::get()->getTexture(directory + "/" + fileName);
 			data.materials[index]->normalMap = tex;
 		}
@@ -110,15 +115,12 @@ void Mesh::initMaterial(Data& data, aiMaterial* material, unsigned int index, co
 	
 	aiColor4D color;
 	if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, &color) == AI_SUCCESS) {
-		std::cout << "Ambient color: rgb(" << color.r << "," << color.g << "," << color.b << ")\n";
 		data.materials[index]->ambientColor = glm::vec3(color.r, color.g, color.b);
 	}
 	if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
-		std::cout << "Diffuse color: rgb(" << color.r << "," << color.g << "," << color.b << ")\n";
 		data.materials[index]->diffuseColor = glm::vec3(color.r, color.g, color.b);
 	}
 	if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, &color) == AI_SUCCESS) {
-		std::cout << "Specular color: rgb(" << color.r << "," << color.g << "," << color.b << ")\n";
 		data.materials[index]->specularColor = glm::vec3(color.r, color.g, color.b);
 	}
 
@@ -134,7 +136,7 @@ Mesh::Data Mesh::loadDataFromFile(const std::string& path)
 		initFromScene(data, scene, path);
 	}
 	else {
-		std::cout << "Mesh failed to load\n";
+		std::cout << "Mesh failed to load: " << path << "\n";
 	}
 
 	return data;
@@ -154,32 +156,36 @@ void Mesh::draw(DrawCallbacks* drawCallbacks) const
 		Material* material = matIdx < mData.materials.size() ?
 			mData.materials[matIdx] : nullptr;
 
-		if (drawCallbacks && material != nullptr) {
-			drawCallbacks->supplyMaterial(*material);
+		if (drawCallbacks) {
 
-			if (material->diffuseTexture) {
-				material->diffuseTexture->bind(DIFFUSE);
-				drawCallbacks->enableDiffuseTexture(true);
-			}
-			else {
-				drawCallbacks->enableDiffuseTexture(false);
-			}
+			if (material) {
+				drawCallbacks->supplyMaterial(*material);
 
-			if (material->specularTexture) {
-				material->specularTexture->bind(SPECULAR);
-				drawCallbacks->enableSpecularTexture(true);
-			}
-			else {
-				drawCallbacks->enableSpecularTexture(false);
-			}
+				if (material->diffuseTexture) {
+					material->diffuseTexture->bind(DIFFUSE);
+					drawCallbacks->enableDiffuseTexture(true);
+				}
+				else {
+					drawCallbacks->enableDiffuseTexture(false);
+				}
 
-			if (material->normalMap) {
-				material->normalMap->bind(NORMAL_MAP);
-				drawCallbacks->enableNormalMap(true);
+				if (material->specularTexture) {
+					material->specularTexture->bind(SPECULAR);
+					drawCallbacks->enableSpecularTexture(true);
+				}
+				else {
+					drawCallbacks->enableSpecularTexture(false);
+				}
+
+				if (material->normalMap) {
+					material->normalMap->bind(NORMAL_MAP);
+					drawCallbacks->enableNormalMap(true);
+				}
+				else {
+					drawCallbacks->enableNormalMap(false);
+				}
 			}
-			else {
-				drawCallbacks->enableNormalMap(false);
-			}
+			
 		}
 
 		mData.geometry->draw(i);
@@ -201,6 +207,15 @@ void Mesh::computeModelMatrix()
 	mMatrix = glm::mat4(1.0f);
 	mMatrix = glm::scale(mMatrix, scale);
 	mMatrix = glm::rotate(mMatrix, pitch, glm::vec3(1.0f, 0.0f, 0.0f));
-	mMatrix = glm::rotate(mMatrix, yaw, glm::vec3(0.0f, cos(pitch), sin(pitch)));
-	mMatrix = glm::translate(glm::mat4(1.0f), position) * mMatrix;
+	mMatrix = glm::rotate(mMatrix, yaw + offsetYaw, glm::vec3(0.0f, cos(pitch), sin(pitch)));
+	mMatrix = glm::translate(glm::mat4(1.0f), position + offset * scale) * mMatrix;
+}
+
+void Mesh::update(float dt)
+{
+}
+
+unsigned int Mesh::getID() const
+{
+	return id;
 }

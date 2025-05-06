@@ -61,6 +61,7 @@ uniform bool u_NormalMapEnabled = false;
 uniform sampler2D u_TextureDiffuse;
 uniform sampler2D u_TextureSpecular;
 uniform sampler2D u_ShadowMap;
+uniform samplerCube u_ShadowCubeMap;
 uniform sampler2D u_NormalMap;
 
 uniform Material u_Material;
@@ -70,11 +71,14 @@ uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 uniform int u_NumPointLights;
 uniform int u_NumSpotLights;
+uniform vec3 u_Color;
 
 uniform bool u_FogEnabled = false;
 uniform Fog u_Fog;
 
 out vec4 FragColor;
+
+const float shadowBias = 0.001;
 
 float CalcFogFactor() {
     float distFromCameraToPixel = distance(v_WorldPosition, u_CameraPosition);
@@ -92,16 +96,22 @@ float CalcShadowFactor()
 {
     vec3 shadowCoords = CalcShadowCoords();
     if(shadowCoords.x < 0.0 || shadowCoords.x > 1.0 || shadowCoords.y < 0.0 || shadowCoords.y > 1.0) {
-        return 1.0;
+        return 0.0;
     }
 
     float depth = texture(u_ShadowMap, shadowCoords.xy).r;
-    float bias = 0.005;
-
-    if(shadowCoords.z - bias > depth) {
+    if(shadowCoords.z > depth + shadowBias) {
         return 0.5;
     }
-    return 1.0;
+
+    return 0.0;
+}
+
+float CalcShadowFactorPointLight(float lightDist, vec3 lightDirection) {
+
+    float depth = texture(u_ShadowCubeMap, lightDirection).r;
+
+    return 0.0;
 }
 
 vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, float shadowFactor) {
@@ -136,7 +146,7 @@ vec4 CalcLightInternal(BaseLight light, vec3 lightDirection, vec3 normal, float 
         }
     }
 
-    return ambientColor + (diffuseColor + specularColor) * shadowFactor;
+    return ambientColor + (diffuseColor + specularColor) * (1.0 - shadowFactor);
 }
 
 vec4 CalcDirectionalLight(vec3 normal) {
@@ -145,14 +155,16 @@ vec4 CalcDirectionalLight(vec3 normal) {
 }
 
 vec4 CalcPointLight(PointLight light, vec3 normal) {
-    vec3 direction = v_WorldPosition - light.Position;
-    float dist = length(direction);
-    direction = normalize(direction);
+    vec3 lightToPixel = v_WorldPosition - light.Position;
 
-    float shadowFactor = CalcShadowFactor();
-    vec4 color = CalcLightInternal(light.Base, direction, normal, shadowFactor);
+    float lightDist = length(lightToPixel);
+    vec3 lightDirection = normalize(lightToPixel);
 
-    return color / (light.Attenuation.Const + dist * (light.Attenuation.Linear + dist * light.Attenuation.Exp));
+    float shadowFactor = CalcShadowFactorPointLight(lightDist, lightToPixel);
+
+    vec4 color = CalcLightInternal(light.Base, lightDirection, normal, shadowFactor);
+
+    return color / (light.Attenuation.Const + lightDist * (light.Attenuation.Linear + lightDist * light.Attenuation.Exp));
 }
 
 vec4 CalcSpotLight(SpotLight light, vec3 normal) {
@@ -160,7 +172,7 @@ vec4 CalcSpotLight(SpotLight light, vec3 normal) {
     float spotFactor = dot(lightToPixel, light.Direction);
 
     if(spotFactor > light.CutOff) { // angle < cutoffAngle -> cos(angle) > cos(cutoffAngle)
-        float lightIntensity = 1 - (1 - spotFactor) / (1 - light.CutOff); // 1 - angle / cutoffAngle -> 1 - (1 - cos(angle)) / (1 - cos(cutoffAngle))
+        float lightIntensity = 1.0 - (1.0 - spotFactor) / (1.0 - light.CutOff); // 1 - angle / cutoffAngle -> 1 - (1 - cos(angle)) / (1 - cos(cutoffAngle))
         return CalcPointLight(light.Base, normal) * lightIntensity;
     }
     return vec4(0.0, 0.0, 0.0, 1.0);
@@ -189,6 +201,8 @@ vec4 CalcPhongLighting() {
         totalLighting += CalcSpotLight(u_SpotLights[i], normal);
     }
 
+    totalLighting = clamp(totalLighting, vec4(0, 0, 0, 0), vec4(1, 1, 1,1));
+
     vec4 finalColor = totalLighting;
 
     if(u_DiffuseTextureEnabled) {
@@ -203,6 +217,7 @@ vec4 CalcPhongLighting() {
 
 void main() {
     FragColor = CalcPhongLighting();
+    //FragColor = vec4(FragColor.rgb * u_Color, FragColor.a);
 
     if(FragColor.a < 0.01) {
         discard;

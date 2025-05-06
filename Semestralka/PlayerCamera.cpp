@@ -5,6 +5,7 @@
 
 PlayerCamera::PlayerCamera()
 {
+	enabled = true;
 	mCamera = nullptr;
 	mPlayer = nullptr;
 
@@ -13,8 +14,21 @@ PlayerCamera::PlayerCamera()
 	pitch = AI_MATH_HALF_PI * 0.25f;
 }
 
+PlayerCamera::PlayerCamera(GameObject* player, Camera* camera)
+	: mPlayer(player), mCamera(camera)
+{
+	enabled = true;
+	distance = 10.0f;
+	yaw = 0.0f;
+	pitch = AI_MATH_HALF_PI * 0.25f;
+}
+
 void PlayerCamera::update(float dt)
 {
+	if (!enabled || mPlayer == nullptr) return;
+
+	Mesh* mesh = mPlayer->getMesh();
+
 	Window* win = Window::get();
 	if (Input::get()->isMouseButtonDown(GLUT_RIGHT_BUTTON)) {
 		yaw -= (float)Input::get()->getMouseDeltaX() / win->getWinWdth() * 10.0f;
@@ -27,11 +41,11 @@ void PlayerCamera::update(float dt)
 
 	float r = cos(pitch) * distance;
 
-	offset.x = sin(mPlayer->yaw + yaw) * r;
+	offset.x = sin(mesh->yaw + yaw) * r;
 	offset.y = sin(pitch) * distance;
-	offset.z = cos(mPlayer->yaw + yaw) * r;
+	offset.z = cos(mesh->yaw + yaw) * r;
 
-	glm::vec3 cameraPos = glm::vec3(mPlayer->position.x, mPlayer->position.y + 4.0f * mPlayer->scale.y, mPlayer->position.z) + offset;
+	glm::vec3 cameraPos = glm::vec3(mesh->position.x, mesh->position.y + 4.0f * mesh->scale.y, mesh->position.z) + offset;
 	glm::vec3 cameraDir = glm::normalize(-offset);
 
 	mCamera->position = mCamera->position + (cameraPos - mCamera->position) * std::min(5.0f * dt, 1.0f);

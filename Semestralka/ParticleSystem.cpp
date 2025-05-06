@@ -102,17 +102,17 @@ void ParticleTechnique::draw(const std::vector<Particle>& particles, Camera* cam
 
 void Particle::updateTexCoordInfo()
 {
-	float lifeFactor = elapsedTime / lifeTime * spriteIndices.size();
+	float lifeFactor = elapsedTime / lifeTime * anim->frames.size();
 
 	unsigned int idx = (unsigned int)floor(lifeFactor);
-	idx = std::min(idx, spriteIndices.size() - 1);
+	idx = std::min(idx, anim->frames.size() - 1);
 
-	unsigned int currentSpriteIdx = spriteIndices[idx];
-	spriteRegion = spritesheet->getRegion(currentSpriteIdx);
+	unsigned int currentSpriteIdx = anim->frames[idx];
+	spriteRegion = anim->spritesheet->getRegion(currentSpriteIdx);
 }
 
-Particle::Particle(const glm::vec3& position, float size, float angle, float lifeTime)
-	: position(position), size(size), angle(angle), lifeTime(lifeTime)
+Particle::Particle(const glm::vec3& position, float size, float angle, float lifeTime, ParticleAnim* anim)
+	: position(position), size(size), angle(angle), lifeTime(lifeTime), anim(anim)
 {
 	elapsedTime = 0.0f;
 	velocity = glm::vec3(0.0f);

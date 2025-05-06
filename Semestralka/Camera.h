@@ -81,15 +81,14 @@ public:
 };
 
 class PerspectiveCamera : public Camera {
-private:
-	float mFov;
 public:
+	float fov;
 
 	PerspectiveCamera() {
-		mFov = glm::radians(60.0f);
+		fov = glm::radians(60.0f);
 	}
 
 	void updateProjection() override {
-		mProjMatrix = glm::perspective(mFov, (float)viewport.width / viewport.height, Near, Far);
+		mProjMatrix = glm::perspective(fov, (float)viewport.width / viewport.height, Near, Far);
 	}
 };

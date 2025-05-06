@@ -13,3 +13,7 @@ T clamp(T x, T min, T max) {
 }
 
 float calcBarrycentricCoordHeight(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, float x, float z);
+
+float random();
+
+glm::vec3 HSLtoRGB(const glm::vec3& hsl);

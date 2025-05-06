@@ -9,23 +9,27 @@
 
 constexpr unsigned int MAX_PARTICLES = 10000;
 
+struct ParticleAnim {
+	Spritesheet* spritesheet;
+	std::vector<unsigned int> frames;
+};
+
 class Particle {
 private:
 	float elapsedTime;
 
 	void updateTexCoordInfo();
 public:
-	Spritesheet* spritesheet;
+	ParticleAnim* anim;
 	glm::vec3 position;
 	float size;
 	float angle;
 
 	float lifeTime;
 	glm::vec3 velocity;
-	std::vector<unsigned int> spriteIndices;
 	SpriteRegion spriteRegion;
 
-	Particle(const glm::vec3& position, float size, float angle, float lifeTime);
+	Particle(const glm::vec3& position, float size, float angle, float lifeTime, ParticleAnim* anim);
 
 	void update(float dt);
 	bool isAlive() const;

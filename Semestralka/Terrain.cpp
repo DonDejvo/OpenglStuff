@@ -1,6 +1,73 @@
 #include "Terrain.h"
 #include "mathUtils.h"
 
+TerrainManager::TerrainManager(const glm::vec2& dim, int terrainSize, TerrainMaterial* material)
+    : dimensions(dim), terrainSize(terrainSize), material(material)
+{
+    for (int x = 0; x < dim.x; ++x) {
+        for (int y = 0; y < dim.y; ++y) {
+            std::string key = std::to_string(x) + "." + std::to_string(y);
+            Terrain* terrain = new Terrain();
+            terrain->x = x * terrainSize;
+            terrain->z = y * terrainSize;
+            terrain->size = terrainSize;
+            terrain->setSegments(256, 256);
+            terrain->init();
+            terrain->setMaterial(material);
+            mTerrains[key] = terrain;
+
+        }
+    }
+}
+
+float TerrainManager::getHeightAtPosition(const glm::vec3& position)
+{
+    int x = clamp((int)(position.x / terrainSize), 0, dimensions.x);
+    int y = clamp((int)(position.z / terrainSize), 0, dimensions.y);
+
+    std::string key = std::to_string(x) + "." + std::to_string(y);
+    if (mTerrains.find(key) != mTerrains.end()) {
+        return mTerrains[key]->getHeightAtPosition(position);
+    }
+
+    return 0.0f;
+}
+
+const std::map<std::string, Terrain*>& TerrainManager::getTerrains() const
+{
+    return mTerrains;
+}
+
+Terrain* TerrainManager::getTerrain(int x, int y)
+{
+    std::string key = std::to_string(x) + "." + std::to_string(y);
+    if (mTerrains.find(key) != mTerrains.end()) {
+        return mTerrains[key];
+    }
+    return nullptr;
+}
+
+void TerrainManager::raycast(const glm::vec3& position, const glm::vec3& direction, RaycastInfo& info)
+{
+    float range = 100.0f;
+
+    float h = getHeightAtPosition(position);
+
+    if (position.y < h) return;
+
+    for (float t = 0; t < range; t += 0.1f) {
+        glm::vec3 curPos = position + direction * t;
+
+        h = getHeightAtPosition(curPos);
+        if (curPos.y < h) {
+            info.hit = true;
+            info.position = curPos;
+            break;
+        }
+    }
+    
+}
+
 Terrain::Terrain()
 {
     mMaterial = nullptr;
@@ -16,9 +83,11 @@ void Terrain::init()
     mPlaneGeometry.init();
     mPlaneGeometry.computeTangents();
     mPlaneGeometry.initBuffers();
+
+    computeModelMatrix();
 }
 
-void Terrain::loadFromHeightMap(const char* path, HeightMapConfig config)
+void Terrain::loadFromHeightMap(const char* path, const HeightMapConfig& config)
 {
     // Load the image
     ILuint imageID;
@@ -87,7 +156,6 @@ void Terrain::draw(DrawCallbacks* drawCallbacks) const
             mMaterial->diffuseTextureRed->bind(DIFFUSE_RED);
             mMaterial->diffuseTextureGreen->bind(DIFFUSE_GREEN);
             mMaterial->diffuseTextureBlue->bind(DIFFUSE_BLUE);
-            mMaterial->heightMap->bind(HEIGHT_MAP);
             drawCallbacks->enableDiffuseTexture(true);
         }
         else {
@@ -112,6 +180,14 @@ void Terrain::draw(DrawCallbacks* drawCallbacks) const
         else {
             drawCallbacks->enableNormalMap(false);
         }
+
+        if (heightMap) {
+            heightMap->bind(HEIGHT_MAP);
+            drawCallbacks->enableHeightMap(true);
+        }
+        else {
+            drawCallbacks->enableHeightMap(false);
+        }
     }
 
     mPlaneGeometry.draw(0);
@@ -126,21 +202,23 @@ void Terrain::setMaterial(TerrainMaterial* mat)
 
 float Terrain::getHeightAtPosition(const glm::vec3& position) const
 {
+    glm::vec3 localPosition = { position.x - x, position.y, position.z - z };
+
     float tileW = size / mPlaneGeometry.widthSegments;
     float tileH = size / mPlaneGeometry.heightSegments;
 
-    int tileX = (int)floor(position.x / tileW);
-    int tileZ = (int)floor(position.z / tileH);
+    int tileX = (int)floor(localPosition.x / tileW);
+    int tileZ = (int)floor(localPosition.z / tileH);
 
     if (tileX < 0 || tileX >= mPlaneGeometry.widthSegments || tileZ < 0 || tileZ >= mPlaneGeometry.heightSegments) {
         return 0.0f;
     }
 
-    float coordX = (position.x - tileX * tileW) / tileW;
-    float coordZ = (position.z - tileZ * tileH) / tileH;
+    float coordX = (localPosition.x - tileX * tileW) / tileW;
+    float coordZ = (localPosition.z - tileZ * tileH) / tileH;
 
-    float x0 = position.x - x - size * 0.5f;
-    float z0 = position.z - z - size * 0.5f;
+    float x0 = localPosition.x - size * 0.5f;
+    float z0 = localPosition.z - size * 0.5f;
 
     if (coordX > coordZ) {
         const glm::vec3& p1 = mPlaneGeometry.vertices[tileZ * (mPlaneGeometry.widthSegments + 1) + tileX].position;
@@ -158,4 +236,10 @@ float Terrain::getHeightAtPosition(const glm::vec3& position) const
     }
 
     return 0.0f;
+}
+
+void Terrain::setHeightMap(Texture* heightMap, const HeightMapConfig& config)
+{
+    loadFromHeightMap(heightMap->getPath().c_str(), config);
+    this->heightMap = heightMap;
 }
