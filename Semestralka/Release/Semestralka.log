@@ -1,0 +1,26 @@
+﻿  CameraMovement.cpp
+  Canvas.cpp
+  Dragon.cpp
+  Editor.cpp
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Editor.cpp(24,13): warning C4244: inicializování: unsigned int se převádí na float; může dojít ke ztrátě dat.
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Editor.cpp(62,78): warning C4305: argument: zkrácení z: double na: float
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Editor.cpp(286,55): warning C4244: argument: int se převádí na float; může dojít ke ztrátě dat.
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Editor.cpp(291,40): warning C4244: argument: int se převádí na float; může dojít ke ztrátě dat.
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Editor.cpp(309,128): warning C4244: argument: unsigned int se převádí na float; může dojít ke ztrátě dat.
+  Game.cpp
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Game.cpp(117,25): warning C4305: =: zkrácení z: double na: float
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Game.cpp(161,57): warning C4244: argument: float se převádí na int; může dojít ke ztrátě dat.
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Game.cpp(698,11): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+  Horse.cpp
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\Horse.cpp(12,22): warning C4305: =: zkrácení z: double na: float
+  Lamp.cpp
+  MageTower.cpp
+  Main.cpp
+  PickingTechnique.cpp
+  Player.cpp
+  PlayerCamera.cpp
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\PlayerCamera.cpp(14,26): warning C4305: =: zkrácení z: double na: float
+C:\Users\Kira\Cvut\Pgr\Semestralka\Semestralka\PlayerCamera.cpp(23,26): warning C4305: =: zkrácení z: double na: float
+  Window.cpp
+LINK : fatal error C1047: Objekt nebo soubor knihovny C:\Users\Kira\Cvut\Pgr\pgr-framework\lib\pgr.lib se vytvořil pomocí jiné verze kompilátoru než jiné objekty, třeba Release\App.obj. Sestavte všechny objekty a knihovny znovu pomocí stejného kompilátoru.
+LINK : fatal error LNK1257: Generování kódu selhalo.

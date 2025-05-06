@@ -110,6 +110,7 @@ void Editor::saveLevel(App& game)
 		ofs << go->type << " " << pos.x << " " << pos.z << " " << go->getMesh()->yaw << "\n";
 	}
 	ofs.close();
+	std::cout << "Level saved successfully.\n";
 }
 
 void Editor::loadLevel(App& game)
@@ -152,6 +153,8 @@ void Editor::loadLevel(App& game)
 		}
 	}
 	ifs.close();
+
+	std::cout << "Level loaded successfully\n";
 }
 
 void Editor::enable(bool value)

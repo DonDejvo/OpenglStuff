@@ -36,7 +36,7 @@ private:
 	void insertGameObject(const std::string& type, const glm::vec3& pos, float yaw, App& game);
 	const std::string& getPathByType(const std::string& type) const;
 public:
-	std::string levelPath = "levels/base.txt";
+	std::string levelPath = "level.txt";
 	bool opened = false;
 	bool enabled = false;
 
